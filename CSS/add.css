@@ -1,0 +1,17 @@
+.in, select{
+    border: 1px solid #1d363fc0;
+    border-radius: 5px;
+    padding: 5px 30px 5px 30px!important;
+    width: 70%;
+}
+.Q{
+    color: #1d363f;
+}
+.ask{
+    margin-top: 4em;
+}
+select, option{
+    font-weight: inherit;
+    background-color: white!important;
+}
+select:invalid { color: gray!important; }

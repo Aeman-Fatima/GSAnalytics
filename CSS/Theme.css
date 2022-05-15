@@ -1,0 +1,372 @@
+html, body {
+    scroll-behavior: smooth;
+    font-family: 'Raleway';
+    color: black;
+    font-size: 1em;
+    z-index: -2;
+    padding-left: 30px;
+}
+
+@media (max-width: 600px) {
+    html, body {
+        font-size: 0.9em;
+    }
+}
+.main-body{
+    padding-top: 50px!important;
+    padding-left: 5%;
+    padding-bottom: 50px;
+}
+
+span, h1, p {
+    cursor: default!important;
+}
+a{
+    text-decoration: none;
+    color: white;
+}
+a:hover{
+    text-decoration: none!important;
+    color: white;
+}
+
+.logo{
+    height: 50px;
+}
+.logomain{
+    height: 80px;
+}
+.nav{
+    margin: 40px;
+}
+.float-right{
+    float: right;
+    right: 0;
+}
+.inline{
+    display: inline;
+}
+.margin{
+    margin: 40px;
+}
+
+.sidenav {
+    height: 100%; /* 100% Full-height */
+    width: 20px; /* 0 width - change this with JavaScript */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Stay on top */
+    top: 0; /* Stay at the top */
+    left: 0;
+    background-color: #1d363f; /* Black*/
+    overflow-x: hidden; /* Disable horizontal scroll */
+    transition: 0.5s; /* 0.5 second transition effect to slide in the sidenav */
+}
+.sidenav2 {
+    height: 100vh; /* 100% Full-height */
+    width: 60px; /* 0 width - change this with JavaScript */
+    position: fixed; /* Stay in place */
+    z-index: 0; /* Stay on top */
+    top: 25vh; /* Stay at the top */
+    left: 0;
+    overflow-x: visible; /* Disable horizontal scroll */
+    transition: 0.5s; /* 0.5 second transition effect to slide in the sidenav */
+} 
+
+.left{
+    color: white;
+    background-color: #1d363f;
+    width: 165px!important;
+    padding: 7px 0px 7px 0px;
+    margin-top: 5px;
+    display: inline-block;
+    border-radius: 5px;
+    margin-left: -100px;
+    transition: 0.5s;
+    right: 0px;
+    font-size: 0.9em;
+}
+.activePage{
+    background-color: #2b7a78;
+}
+.left:hover{
+    margin-left: 0px;
+    transition: 0.5s;
+}
+
+.fa{
+    color: white;
+    display: inline;
+}
+.faSide{
+    font-size: 1.1em!important;
+}
+
+.equal-padding{
+    display: inline-block;
+    width: 136px;
+    padding-left: 25px;
+    text-align: left;
+    letter-spacing: 0.5px;
+    font-size: 0.9em;
+}
+.center{
+    align-items: center;
+    text-align: center;
+    padding-top: 40px;
+    display: inherit;
+}
+.vertical-middle{
+    font-size: 2em;
+    letter-spacing: 3px;
+    font-family: 'Raleway';
+}
+
+.bar{
+    padding: 15px 0 15px 0;
+    border: 1px solid #1d363f;
+    border-radius: 5px;
+    width: 70%;
+    align-content: center;
+    align-items: center;
+    display: inline-block;
+}
+.barItem{
+    width: 120px;
+    border-right: 1px solid #1d363f;
+    text-align: center;
+    display: inline-block;
+    letter-spacing: 1px;
+}
+.barItemR{
+    border: none;
+    
+}
+.uprTxt{
+    display: inline-block;
+    margin-top: 7px;
+    color: black!important;
+}
+.graph{
+    width: 650px;
+    height: 400px;
+}
+.graphc{
+    width: 550px;
+    height: 450px;
+}
+#graphs{
+    margin-top: 30px;
+}
+.active{
+    /* color: #1d363f;
+    text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black; */
+    font-weight: bold;
+}
+.mainTop{
+    padding-top: 2.9em;
+    font-size: 1.3em;
+    font-weight: 900;
+
+}
+.mainBtn{
+    width: 100%;
+    padding: 20px 0px 20px 0px;
+    background-color: #1d363f;
+    color: white;
+    border-radius: 5px;
+    font-size: 1em;
+}
+.mainBtn:hover{
+    background-color: #2b7a78!important;
+    color: white;
+}
+.mainIcons{
+    padding-right: 10px;
+    font-size: 1.2em!important;
+}
+.marginZero{
+    padding-top: 20px;
+}
+
+.indGraph{
+    width: 350px;
+    height: 200px;
+}
+#ui-datepicker-div{
+    background-color: #1d363f;
+}
+#ui-datepicker-div span{
+    color: white;
+}
+.btnPicker{
+    background-color: white;
+    border: none;
+}
+.date{
+    padding: 0px 30px 0px 3 0px;
+}
+
+/* Table */
+
+table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 3em;
+ }
+ 
+ 
+ th {
+   border: 1px solid #2b7a78!important;
+   text-align: left;
+ }
+ 
+ td{
+   border: 1px solid #2b7a78;
+   text-align: left;
+ }
+ 
+ td:nth-child(even), th:nth-child(even){
+   padding: 0.75rem;
+ }
+ tr:nth-child(even) {
+   background-color: #2b7a774b;
+   
+ }
+ tr:nth-child(odd):not(:first-child){
+   padding: 0rem;
+   margin-top: 0em;
+ }
+
+ .btnSelect{
+     margin-top: 30px;
+     background-color: #1d363f;
+     color: white;
+     padding: 5px 20px 5px 20px;
+ }
+ .btnSelect:hover{
+    background-color: #2b7a78;
+    color: white;
+}
+
+
+
+
+/* --------------------- */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    padding-top: 100px; /* Location of the box */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+  }
+  
+  /* Modal Content */
+  .modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+  }
+  
+  /* The Close Button */
+  .close {
+    color: #aaaaaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+  }
+  
+  .close:hover,
+  .close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+
+  
+/*-------Search bar-------*/
+
+.search {
+    width: 50%;
+    position: relative;
+    display: flex;
+    float: right;
+    margin-bottom: 50px;
+  }
+  
+  .searchTerm {
+    width: 100%;
+    border: 3px solid #1d363f;
+    border-right: none;
+    padding: 5px;
+    height: 2.2em;
+    border-radius: 5px 0 0 5px;
+    outline: none;
+    color: #2b7a7793;
+  }
+  
+  .searchTerm:focus{
+    color: #1d363f;
+  }
+  
+  .searchButton {
+    width: 40px;
+    height: 1.75em;
+    border: 1px solid #1d363f;
+    background: #1d363f;
+    text-align: center;
+    color: #fff;
+    border-radius: 0 5px 5px 0;
+    cursor: pointer;
+    font-size: 20px;
+  }
+  .searchIcon{
+      width: 25px;
+  }
+
+  /*Resize the wrap to see the search bar change!*/
+
+.wrap{
+    width: 34%;
+    position: relative;
+    right: 0em;   
+    float: right;
+  }
+  @media(max-width: 1112px){
+    .wrap{
+      width: 40%;
+    }
+  }
+  @media(max-width: 768px){
+    .wrap{
+      width: 100%;
+      margin-left: 2em;
+    }
+  }
+
+
+  @media(max-width: 850px){
+      .vertical-middle{
+          font-size: 1.3em;
+      }
+      .logo{
+          height: 60px;
+          float: left;
+      }
+      .logo-El{
+          display: block;
+          max-width: 100%!important;
+      }
+      .col-6{
+          padding-top: 30px;
+      }
+  }
