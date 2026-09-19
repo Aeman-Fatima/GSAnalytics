@@ -1,165 +1,146 @@
 <!DOCTYPE html>
-
+<html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+    <title>GS Analytics — Add Record</title>
+    <link rel="icon" href="Images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha384-PPIZEGYM1v8zp5Py7UjFb79S58UeqCL9pYVnVPURKEqvioPROaVAJKKLzvH2rDnI" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link href="https://fonts.googleapis.com/css?family=Raleway:300,400,500i,900,900i" rel="stylesheet">
     <link rel="stylesheet" href="CSS/Theme.css">
     <link rel="stylesheet" href="CSS/add.css">
-    <link rel="stylesheet" href="AwesomeOld/css/font-awesome.min.css">
-    <script src="JS/stats.js"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href='https://fonts.googleapis.com/css?family=Raleway:300,400,500i,900,900i' rel='stylesheet'>
-    <link rel="stylesheet" href="CSS/jquerycss.css">
-    <script src="JQuery/jq.js"></script>
-    <script src="JQuery/jqUI.js"></script>    
-    <script>
-        $( function() {
-          $( "#datepicker" ).datepicker();
-        } );
-    </script>
     <style>
-        .ask{
-            margin-top: 2em;
-        }
+        .ask{ margin-top: 2em; }
     </style>
-  
 </head>
-<!--Navbar-->
+<body data-page="addRecord">
+    <script>if (sessionStorage.getItem('gsa.session') !== '1') { window.location.replace('index.html'); }</script>
 
-<!--Body-->
+    <button id="navToggle" class="navToggle" aria-label="Toggle navigation"><i class="fa-solid fa-bars"></i></button>
+    <div class="sidenav"></div>
+    <nav class="sidenav2" id="sidenav2"></nav>
 
-<body>
-    <div class="sidenav">
-        
-    </div>
-    <div class="sidenav2">
-        <a class="left" href="main.html"><span class="equal-padding">Home</span><i class="faSide fa fa-home"></i></a>
-        <a class="left" href="salesByCustomers.html"><span class="equal-padding">Customers</span><i class="faSide fa fa-users"></i></a>
-        <a class="left" href="salesByProduct.html"><span class="equal-padding">Products</span><i class="faSide fa fa-archive"></i></a>
-        <a class="left" href="salesByCity.html"><span class="equal-padding">Cities</span><i class="faSide fa fa-location-arrow"></i></a>
-        <a class="left" href="stats.html"><span class="equal-padding">Stats</span><i class="faSide fa fa-area-chart"></i></a>
-        <a class="left" href="addProduct.html"><span class="equal-padding">New Product</span><img src="Images/addProduct.png" style="height: 20px;"></a>
-        <a class="left activePage" href="addRecord.html"><span class="equal-padding">New Record</span><i class="faSide fa fa-database"></i></a>
-        <a class="left" href="addCustomer.html"><span class="equal-padding">New Customer</span><i class="faSide fa fa-user-plus"></i></a>
-        <a class="left" href="salesForecasting.html"><span class="equal-padding">Sales Forecast</span><i class="faSide fa fa-cart-plus"></i></a>
-        <a class="left" href="data.html"><span class="equal-padding">Data</span><i class="faSide fa fa-table"></i></a>
-    </div>
-    <div class="fluid-container center">
-        <div class="row">
+    <header class="fluid-container center topbar">
+        <div class="row align-items-center">
             <div class="col-md-3">
-                <img src="Images/logo.png" class="logo"/>
+                <img src="Images/logo.png" class="logo" alt="GS Analytics logo"/>
             </div>
             <div class="col-md-6">
                 <span class="vertical-middle">Add New Record</span>
             </div>
             <div class="col-md-3">
-                <span class="uprTxt">Logout</span>
+                <span class="uprTxt" data-user></span>
+                <a href="#" class="uprTxt" data-action="logout" style="margin-left:10px;">Logout</a>
             </div>
         </div>
-    </div>
-    <div class="container main-body">
-        <div class="container">
-            <div class="row ask">
-                <div class="col-md-6">
-                    <span class="Q">Date: </span>
-                </div>
-                <div class="col-md-6">
-                    <input type="button" class="btnPicker" id="datepicker" value="&#128467;">
-                </div>
+    </header>
+
+    <main class="fluid-container center">
+        <div class="container main-body">
+            <div class="container">
+                <form id="recordForm" novalidate>
+                    <div class="row ask">
+                        <div class="col-md-6"><label class="Q" for="orderDate">Date:</label></div>
+                        <div class="col-md-6"><input type="date" class="in" id="orderDate" required></div>
+                    </div>
+
+                    <div class="row ask">
+                        <div class="col-md-6"><label class="Q" for="customerId">Customer:</label></div>
+                        <div class="col-md-6">
+                            <select class="in" id="customerId" required>
+                                <option disabled selected hidden value="">Select a customer</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row ask">
+                        <div class="col-md-6"><label class="Q" for="productId">Product:</label></div>
+                        <div class="col-md-6">
+                            <select class="in" id="productId" required>
+                                <option disabled selected hidden value="">Select a product</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row ask">
+                        <div class="col-md-6"><label class="Q" for="city">City:</label></div>
+                        <div class="col-md-6">
+                            <input class="in" type="text" id="city" list="cityOptions" placeholder="City" required>
+                            <datalist id="cityOptions"></datalist>
+                        </div>
+                    </div>
+
+                    <div class="row ask">
+                        <div class="col-md-6"><label class="Q" for="sales">Sales:</label></div>
+                        <div class="col-md-6"><input class="in" type="number" step="0.01" min="0.01" id="sales" placeholder="Sales" required></div>
+                    </div>
+
+                    <div class="row ask">
+                        <div class="col-md-6"></div>
+                        <div class="col-md-6"><button type="submit" class="btn btnSelect">Add Record</button></div>
+                    </div>
+                </form>
             </div>
-
-
-            <div class="row ask">
-                <div class="col-md-6">
-                    <span class="Q">Customer ID: </span>
-                </div>
-                <div class="col-md-6">
-                    <select class="in">
-                        <option class="select" disabled selected hidden>Select</option>
-                        <option>CG-12520</option>
-                        <option>DV-13045</option>
-                        <option>SO-20335</option>
-                        <option>BH-11710</option>
-                        <option>CG-12520</option>
-                        <option>DV-13045</option>
-                        <option>SO-20335</option>
-                        <option>BH-11710</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="row ask">
-                <div class="col-md-6">
-                    <span class="Q">Customer Name: </span>
-                </div>
-                <div class="col-md-6">
-                    <select class="in">
-                        <option class="select" disabled selected hidden>Select</option>
-                        <option>Technology</option>
-                        <option>Furniture</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="row ask">
-                <div class="col-md-6">
-                    <span class="Q">Product ID: </span>
-                </div>
-                <div class="col-md-6">
-                    <select class="in">
-                        <option class="select" disabled selected hidden>Select</option>
-                        <option>Technology</option>
-                        <option>Furniture</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="row ask">
-                <div class="col-md-6">
-                    <span class="Q">Product Name: </span>
-                </div>
-                <div class="col-md-6">
-                    <select class="in">
-                        <option class="select" disabled selected hidden>Select</option>
-                        <option>Technology</option>
-                        <option>Furniture</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="row ask">
-                <div class="col-md-6">
-                    <span class="Q">City: </span>
-                </div>
-                <div class="col-md-6">
-                    <select class="in">
-                        <option class="select" disabled selected hidden>Select</option>
-                        <option>Technology</option>
-                        <option>Furniture</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="row ask">
-                <div class="col-md-6">
-                    <span class="Q">Sales: </span>
-                </div>
-                <div class="col-md-6">
-                    <input class="in" type="numer" placeholder="Sales">
-                </div>
-            </div>
-
-            <div class="row ask">
-                <div class="col-md-6">
-                </div>
-                <div class="col-md-6">
-                    <button class="btn btnSelect">Add Record</button>
-                </div>
-            </div>
-
         </div>
-    </div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="JS/auth.js"></script>
+    <script src="JS/data.js"></script>
+    <script src="JS/ui.js"></script>
+    <script src="JS/nav.js"></script>
+    <script>
+        var customers = GSData.getCustomers();
+        var products = GSData.getProducts();
+        var cities = GSData.getCities();
+
+        var customerSelect = document.getElementById('customerId');
+        customers.forEach(function (c) {
+            var opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = c.id + ' — ' + c.name;
+            customerSelect.appendChild(opt);
+        });
+
+        var productSelect = document.getElementById('productId');
+        products.forEach(function (p) {
+            var opt = document.createElement('option');
+            opt.value = p.id;
+            opt.textContent = p.id + ' — ' + p.name;
+            productSelect.appendChild(opt);
+        });
+
+        var cityOptions = document.getElementById('cityOptions');
+        cities.forEach(function (city) {
+            var opt = document.createElement('option');
+            opt.value = city;
+            cityOptions.appendChild(opt);
+        });
+
+        document.getElementById('orderDate').valueAsDate = new Date();
+
+        document.getElementById('recordForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            var customer = customers.find(function (c) { return c.id === customerSelect.value; });
+            var product = products.find(function (p) { return p.id === productSelect.value; });
+            if (!customer || !product) { GSUI.showToast('Select a customer and product.', true); return; }
+
+            GSData.addRecord({
+                orderDate: document.getElementById('orderDate').value,
+                customerId: customer.id,
+                customerName: customer.name,
+                segment: customer.segment,
+                productId: product.id,
+                productName: product.name,
+                category: product.category,
+                city: document.getElementById('city').value.trim(),
+                sales: parseFloat(document.getElementById('sales').value) || 0
+            });
+            GSUI.showToast('Record added.');
+            this.reset();
+            document.getElementById('orderDate').valueAsDate = new Date();
+        });
+    </script>
 </body>
-<!--footer-->
+</html>

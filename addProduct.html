@@ -1,91 +1,100 @@
-
 <!DOCTYPE html>
-
+<html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+    <title>GS Analytics — Add Product</title>
+    <link rel="icon" href="Images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha384-PPIZEGYM1v8zp5Py7UjFb79S58UeqCL9pYVnVPURKEqvioPROaVAJKKLzvH2rDnI" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link href="https://fonts.googleapis.com/css?family=Raleway:300,400,500i,900,900i" rel="stylesheet">
     <link rel="stylesheet" href="CSS/Theme.css">
     <link rel="stylesheet" href="CSS/add.css">
-    <link rel="stylesheet" href="AwesomeOld/css/font-awesome.min.css">
-    <script src="JS/stats.js"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href='https://fonts.googleapis.com/css?family=Raleway:300,400,500i,900,900i' rel='stylesheet'>
-
-  
 </head>
-<!--Navbar-->
+<body data-page="addProduct">
+    <script>if (sessionStorage.getItem('gsa.session') !== '1') { window.location.replace('index.html'); }</script>
 
-<!--Body-->
+    <button id="navToggle" class="navToggle" aria-label="Toggle navigation"><i class="fa-solid fa-bars"></i></button>
+    <div class="sidenav"></div>
+    <nav class="sidenav2" id="sidenav2"></nav>
 
-<body>
-    <div class="sidenav">
-        
-    </div>
-    <div class="sidenav2">
-        <a class="left" href="main.html"><span class="equal-padding">Home</span><i class="faSide fa fa-home"></i></a>
-        <a class="left" href="salesByCustomers.html"><span class="equal-padding">Customers</span><i class="faSide fa fa-users"></i></a>
-        <a class="left" href="salesByProduct.html"><span class="equal-padding">Products</span><i class="faSide fa fa-archive"></i></a>
-        <a class="left" href="salesByCity.html"><span class="equal-padding">Cities</span><i class="faSide fa fa-location-arrow"></i></a>
-        <a class="left" href="stats.html"><span class="equal-padding">Stats</span><i class="faSide fa fa-area-chart"></i></a>
-        <a class="left activePage" href="addProduct.html"><span class="equal-padding">New Product</span><img src="Images/addProduct.png" style="height: 20px;"></a>
-        <a class="left" href="addRecord.html"><span class="equal-padding">New Record</span><i class="faSide fa fa-database"></i></a>
-        <a class="left" href="addCustomer.html"><span class="equal-padding">New Customer</span><i class="faSide fa fa-user-plus"></i></a>
-        <a class="left" href="salesForecasting.html"><span class="equal-padding">Sales Forecast</span><i class="faSide fa fa-cart-plus"></i></a>
-        <a class="left" href="data.html"><span class="equal-padding">Data</span><i class="faSide fa fa-table"></i></a>
-    </div>
-    <div class="fluid-container center">
-        <div class="row">
+    <header class="fluid-container center topbar">
+        <div class="row align-items-center">
             <div class="col-md-3">
-                <img src="Images/logo.png" class="logo"/>
+                <img src="Images/logo.png" class="logo" alt="GS Analytics logo"/>
             </div>
             <div class="col-md-6">
                 <span class="vertical-middle">Add New Product</span>
             </div>
             <div class="col-md-3">
-                <span class="uprTxt">Logout</span>
+                <span class="uprTxt" data-user></span>
+                <a href="#" class="uprTxt" data-action="logout" style="margin-left:10px;">Logout</a>
             </div>
         </div>
-    </div>
-    <div class="container main-body">
-        <div class="container">
-            <div class="row ask">
-                <div class="col-md-6">
-                    <span class="Q">Product ID: </span>
-                </div>
-                <div class="col-md-6">
-                    <input class="in" type="text" placeholder="AAA-AA-00000000">
-                </div>
-            </div>
-            <div class="row ask">
-                <div class="col-md-6">
-                    <span class="Q">Product Name: </span>
-                </div>
-                <div class="col-md-6">
-                    <input class="in" type="text" placeholder="Product Name">
-                </div>
-            </div>
-            <div class="row ask">
-                <div class="col-md-6">
-                    <span class="Q">Category: </span>
-                </div>
-                <div class="col-md-6">
-                    <select class="in">
-                        <option class="select" disabled selected hidden>Select</option>
-                        <option>Technology</option>
-                        <option>Furniture</option>
-                    </select>
-                </div>
-            </div>
-            <div class="row ask">
-                <div class="col-md-6">
-                </div>
-                <div class="col-md-6">
-                    <button class="btn btnSelect">Add Product</button>
-                </div>
+    </header>
+
+    <main class="fluid-container center">
+        <div class="container main-body">
+            <div class="container">
+                <form id="productForm" novalidate>
+                    <div class="row ask">
+                        <div class="col-md-6"><label class="Q" for="productId">Product ID:</label></div>
+                        <div class="col-md-6">
+                            <input class="in" type="text" id="productId" pattern="[A-Za-z]{3}-[A-Za-z]{2}-\d{8}" placeholder="AAA-AA-00000000" required>
+                            <div class="form-error" id="idError">Use the format AAA-AA-00000000.</div>
+                        </div>
+                    </div>
+                    <div class="row ask">
+                        <div class="col-md-6"><label class="Q" for="productName">Product Name:</label></div>
+                        <div class="col-md-6"><input class="in" type="text" id="productName" placeholder="Product Name" required></div>
+                    </div>
+                    <div class="row ask">
+                        <div class="col-md-6"><label class="Q" for="category">Category:</label></div>
+                        <div class="col-md-6">
+                            <select class="in" id="category" required>
+                                <option class="select" disabled selected hidden value="">Select</option>
+                                <option>Technology</option>
+                                <option>Furniture</option>
+                                <option>Office Supplies</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row ask">
+                        <div class="col-md-6"></div>
+                        <div class="col-md-6"><button type="submit" class="btn btnSelect">Add Product</button></div>
+                    </div>
+                </form>
             </div>
         </div>
-    </div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="JS/auth.js"></script>
+    <script src="JS/data.js"></script>
+    <script src="JS/ui.js"></script>
+    <script src="JS/nav.js"></script>
+    <script>
+        document.getElementById('productForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            var id = document.getElementById('productId').value.trim().toUpperCase();
+            var idError = document.getElementById('idError');
+            if (!/^[A-Za-z]{3}-[A-Za-z]{2}-\d{8}$/.test(id)) { idError.classList.add('show'); return; }
+            idError.classList.remove('show');
+
+            var existing = GSData.getProducts();
+            if (existing.some(function (p) { return p.id === id; })) {
+                GSUI.showToast('A product with that ID already exists.', true);
+                return;
+            }
+
+            GSData.addProduct({
+                id: id,
+                name: document.getElementById('productName').value.trim(),
+                category: document.getElementById('category').value
+            });
+            GSUI.showToast('Product added.');
+            this.reset();
+        });
+    </script>
 </body>
-<!--footer-->
+</html>

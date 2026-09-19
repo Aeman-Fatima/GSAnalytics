@@ -1,306 +1,172 @@
 <!DOCTYPE html>
-
+<html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+    <title>GS Analytics — Data</title>
+    <link rel="icon" href="Images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha384-PPIZEGYM1v8zp5Py7UjFb79S58UeqCL9pYVnVPURKEqvioPROaVAJKKLzvH2rDnI" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link href="https://fonts.googleapis.com/css?family=Raleway:300,400,500i,900,900i" rel="stylesheet">
     <link rel="stylesheet" href="CSS/Theme.css">
     <link rel="stylesheet" href="CSS/add.css">
-    <link rel="stylesheet" href="AwesomeOld/css/font-awesome.min.css">
-    <script src="JS/stats.js"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href='https://fonts.googleapis.com/css?family=Raleway:300,400,500i,900,900i' rel='stylesheet'>
     <style>
-        
-        .table{
-            margin-top: 0em;
-        }
-        .main-body{
-            margin-bottom: 4em;
-        }
+        .table{ margin-top: 0em; }
+        .main-body{ margin-bottom: 4em; }
+        #editModal .modal-content{ max-width: 520px; }
     </style>
-  
 </head>
-<!--Navbar-->
+<body data-page="data">
+    <script>if (sessionStorage.getItem('gsa.session') !== '1') { window.location.replace('index.html'); }</script>
 
-<!--Body-->
+    <button id="navToggle" class="navToggle" aria-label="Toggle navigation"><i class="fa-solid fa-bars"></i></button>
+    <div class="sidenav"></div>
+    <nav class="sidenav2" id="sidenav2"></nav>
 
-<body>
-    <div class="sidenav">
-        
-    </div>
-    <div class="sidenav2">
-        <a class="left" href="main.html"><span class="equal-padding">Home</span><i class="faSide fa fa-home"></i></a>
-        <a class="left" href="salesByCustomers.html"><span class="equal-padding">Customers</span><i class="faSide fa fa-users"></i></a>
-        <a class="left" href="salesByProduct.html"><span class="equal-padding">Products</span><i class="faSide fa fa-archive"></i></a>
-        <a class="left" href="salesByCity.html"><span class="equal-padding">Cities</span><i class="faSide fa fa-location-arrow"></i></a>
-        <a class="left" href="stats.html"><span class="equal-padding">Stats</span><i class="faSide fa fa-area-chart"></i></a>
-        <a class="left" href="addProduct.html"><span class="equal-padding">New Product</span><img src="Images/addProduct.png" style="height: 20px;"></a>
-        <a class="left" href="addRecord.html"><span class="equal-padding">New Record</span><i class="faSide fa fa-database"></i></a>
-        <a class="left" href="addCustomer.html"><span class="equal-padding">New Customer</span><i class="faSide fa fa-user-plus"></i></a>
-        <a class="left" href="salesForecasting.html"><span class="equal-padding">Sales Forecast</span><i class="faSide fa fa-cart-plus"></i></a>
-        <a class="left activePage" href="data.html"><span class="equal-padding">Data</span><i class="faSide fa fa-table"></i></a>
-    </div>
-    <div class="fluid-container center">
-        <div class="row">
+    <header class="fluid-container center topbar">
+        <div class="row align-items-center">
             <div class="col-md-3">
-                <img src="Images/logo.png" class="logo"/>
+                <img src="Images/logo.png" class="logo" alt="GS Analytics logo"/>
             </div>
             <div class="col-md-6">
                 <span class="vertical-middle">Data</span>
             </div>
             <div class="col-md-3">
-                <span class="uprTxt">Logout</span>
+                <span class="uprTxt" data-user></span>
+                <a href="#" class="uprTxt" data-action="logout" style="margin-left:10px;">Logout</a>
             </div>
         </div>
-    </div>
-    <div class="fluid-container center">
+    </header>
+
+    <main class="fluid-container center">
         <div class="container main-body">
             <div class='search'>
-                <input name='search' type='text' class='searchTerm' placeholder='What are you looking for?'>
-                <button type='submit' class='searchButton'>
-                    <img class="searchIcon" src='Images/filter.png'/>
-                </button>
+                <input id="searchInput" name='search' type='text' class='searchTerm' placeholder='What are you looking for?' aria-label="Search records">
+                <button type='button' class='searchButton'><img class="searchIcon" src='Images/filter.png' alt=""/></button>
             </div>
+            <p class="note" style="clear: both;">Click a row to select it, then use Delete or Edit below.</p>
+            <div class="table-scroll">
                 <table class="table">
-                    <tr>
-                        <th>ID</th>
-                        <th>Order Date</th>
-                        <th>Customer ID</th>
-                        <th>Customer Name</th>
-                        <th>Segment</th>
-                        <th>Product ID</th>
-                        <th>Product Name</th>
-                        <th>Category</th>
-                        <th>City</th>
-                        <th>Sales</th>
-                    </tr>
-                    <tr>
-                        <td>1</td>
-                        <td>08/11/2017</td>
-                        <td>CG-12520</td>
-                        <td>Claire Gute</td>
-                        <td>Consumer</td>
-                        <td>FUR-BO-10001798</td>
-                        <td>Bush Somerset Collection Bookcase</td>
-                        <td>Furniture</td>
-                        <td>Henderson</td>
-                        <td>261.96</td>
-                    </tr>
-                    <tr>
-                        <td>1</td>
-                        <td>08/11/2017</td>
-                        <td>CG-12520</td>
-                        <td>Claire Gute</td>
-                        <td>Consumer</td>
-                        <td>FUR-BO-10001798</td>
-                        <td>Bush Somerset Collection Bookcase</td>
-                        <td>Furniture</td>
-                        <td>Henderson</td>
-                        <td>261.96</td>
-                    </tr>
-                    <tr>
-                        <td>1</td>
-                        <td>08/11/2017</td>
-                        <td>CG-12520</td>
-                        <td>Claire Gute</td>
-                        <td>Consumer</td>
-                        <td>FUR-BO-10001798</td>
-                        <td>Bush Somerset Collection Bookcase</td>
-                        <td>Furniture</td>
-                        <td>Henderson</td>
-                        <td>261.96</td>
-                    </tr>
-                    <tr>
-                        <td>1</td>
-                        <td>08/11/2017</td>
-                        <td>CG-12520</td>
-                        <td>Claire Gute</td>
-                        <td>Consumer</td>
-                        <td>FUR-BO-10001798</td>
-                        <td>Bush Somerset Collection Bookcase</td>
-                        <td>Furniture</td>
-                        <td>Henderson</td>
-                        <td>261.96</td>
-                    </tr>
-                    <tr>
-                        <td>1</td>
-                        <td>08/11/2017</td>
-                        <td>CG-12520</td>
-                        <td>Claire Gute</td>
-                        <td>Consumer</td>
-                        <td>FUR-BO-10001798</td>
-                        <td>Bush Somerset Collection Bookcase</td>
-                        <td>Furniture</td>
-                        <td>Henderson</td>
-                        <td>261.96</td>
-                    </tr>
-                    <tr>
-                        <td>1</td>
-                        <td>08/11/2017</td>
-                        <td>CG-12520</td>
-                        <td>Claire Gute</td>
-                        <td>Consumer</td>
-                        <td>FUR-BO-10001798</td>
-                        <td>Bush Somerset Collection Bookcase</td>
-                        <td>Furniture</td>
-                        <td>Henderson</td>
-                        <td>261.96</td>
-                    </tr>
-                    <tr>
-                        <td>1</td>
-                        <td>08/11/2017</td>
-                        <td>CG-12520</td>
-                        <td>Claire Gute</td>
-                        <td>Consumer</td>
-                        <td>FUR-BO-10001798</td>
-                        <td>Bush Somerset Collection Bookcase</td>
-                        <td>Furniture</td>
-                        <td>Henderson</td>
-                        <td>261.96</td>
-                    </tr>
-                    <tr>
-                        <td>1</td>
-                        <td>08/11/2017</td>
-                        <td>CG-12520</td>
-                        <td>Claire Gute</td>
-                        <td>Consumer</td>
-                        <td>FUR-BO-10001798</td>
-                        <td>Bush Somerset Collection Bookcase</td>
-                        <td>Furniture</td>
-                        <td>Henderson</td>
-                        <td>261.96</td>
-                    </tr>
-                    <tr>
-                        <td>1</td>
-                        <td>08/11/2017</td>
-                        <td>CG-12520</td>
-                        <td>Claire Gute</td>
-                        <td>Consumer</td>
-                        <td>FUR-BO-10001798</td>
-                        <td>Bush Somerset Collection Bookcase</td>
-                        <td>Furniture</td>
-                        <td>Henderson</td>
-                        <td>261.96</td>
-                    </tr>
-                    <tr>
-                        <td>1</td>
-                        <td>08/11/2017</td>
-                        <td>CG-12520</td>
-                        <td>Claire Gute</td>
-                        <td>Consumer</td>
-                        <td>FUR-BO-10001798</td>
-                        <td>Bush Somerset Collection Bookcase</td>
-                        <td>Furniture</td>
-                        <td>Henderson</td>
-                        <td>261.96</td>
-                    </tr>
-                    <tr>
-                        <td>1</td>
-                        <td>08/11/2017</td>
-                        <td>CG-12520</td>
-                        <td>Claire Gute</td>
-                        <td>Consumer</td>
-                        <td>FUR-BO-10001798</td>
-                        <td>Bush Somerset Collection Bookcase</td>
-                        <td>Furniture</td>
-                        <td>Henderson</td>
-                        <td>261.96</td>
-                    </tr>
-                    <tr>
-                        <td>1</td>
-                        <td>08/11/2017</td>
-                        <td>CG-12520</td>
-                        <td>Claire Gute</td>
-                        <td>Consumer</td>
-                        <td>FUR-BO-10001798</td>
-                        <td>Bush Somerset Collection Bookcase</td>
-                        <td>Furniture</td>
-                        <td>Henderson</td>
-                        <td>261.96</td>
-                    </tr>
-                    <tr>
-                        <td>1</td>
-                        <td>08/11/2017</td>
-                        <td>CG-12520</td>
-                        <td>Claire Gute</td>
-                        <td>Consumer</td>
-                        <td>FUR-BO-10001798</td>
-                        <td>Bush Somerset Collection Bookcase</td>
-                        <td>Furniture</td>
-                        <td>Henderson</td>
-                        <td>261.96</td>
-                    </tr>
-                    <tr>
-                        <td>1</td>
-                        <td>08/11/2017</td>
-                        <td>CG-12520</td>
-                        <td>Claire Gute</td>
-                        <td>Consumer</td>
-                        <td>FUR-BO-10001798</td>
-                        <td>Bush Somerset Collection Bookcase</td>
-                        <td>Furniture</td>
-                        <td>Henderson</td>
-                        <td>261.96</td>
-                    </tr>
-                    <tr>
-                        <td>1</td>
-                        <td>08/11/2017</td>
-                        <td>CG-12520</td>
-                        <td>Claire Gute</td>
-                        <td>Consumer</td>
-                        <td>FUR-BO-10001798</td>
-                        <td>Bush Somerset Collection Bookcase</td>
-                        <td>Furniture</td>
-                        <td>Henderson</td>
-                        <td>261.96</td>
-                    </tr>
-                    <tr>
-                        <td>1</td>
-                        <td>08/11/2017</td>
-                        <td>CG-12520</td>
-                        <td>Claire Gute</td>
-                        <td>Consumer</td>
-                        <td>FUR-BO-10001798</td>
-                        <td>Bush Somerset Collection Bookcase</td>
-                        <td>Furniture</td>
-                        <td>Henderson</td>
-                        <td>261.96</td>
-                    </tr>
-                    <tr>
-                        <td>1</td>
-                        <td>08/11/2017</td>
-                        <td>CG-12520</td>
-                        <td>Claire Gute</td>
-                        <td>Consumer</td>
-                        <td>FUR-BO-10001798</td>
-                        <td>Bush Somerset Collection Bookcase</td>
-                        <td>Furniture</td>
-                        <td>Henderson</td>
-                        <td>261.96</td>
-                    </tr>
-                    <tr>
-                        <td>1</td>
-                        <td>08/11/2017</td>
-                        <td>CG-12520</td>
-                        <td>Claire Gute</td>
-                        <td>Consumer</td>
-                        <td>FUR-BO-10001798</td>
-                        <td>Bush Somerset Collection Bookcase</td>
-                        <td>Furniture</td>
-                        <td>Henderson</td>
-                        <td>261.96</td>
-                    </tr>   
+                    <thead>
+                        <tr>
+                            <th>ID</th><th>Order Date</th><th>Customer ID</th><th>Customer Name</th>
+                            <th>Segment</th><th>Product ID</th><th>Product Name</th><th>Category</th>
+                            <th>City</th><th>Sales</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
                 </table>
+            </div>
             <div class="row float-right">
                 <div class="buttons" style="margin-right: 10px;">
-                    <button class="btn btnSelect">Add Record</button>
-                    <button class="btn btnSelect">Delete Record</button>
-                    <button class="btn btnSelect">Edit Record</button>
-                    <button class="btn btnSelect">Export CSV</button>
+                    <a href="addRecord.html" class="btn btnSelect">Add Record</a>
+                    <button type="button" class="btn btnSelect" id="deleteBtn">Delete Record</button>
+                    <button type="button" class="btn btnSelect" id="editBtn">Edit Record</button>
+                    <button type="button" class="btn btnSelect" id="exportBtn">Export CSV</button>
                 </div>
             </div>
         </div>
+    </main>
+
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeModal">&times;</span>
+            <h3 style="color:#1d363f;">Edit Record</h3>
+            <form id="editForm">
+                <div class="row ask"><div class="col-md-6"><label class="Q" for="editOrderDate">Order Date:</label></div><div class="col-md-6"><input type="date" class="in" id="editOrderDate" required></div></div>
+                <div class="row ask"><div class="col-md-6"><label class="Q" for="editCustomerName">Customer Name:</label></div><div class="col-md-6"><input type="text" class="in" id="editCustomerName" required></div></div>
+                <div class="row ask"><div class="col-md-6"><label class="Q" for="editProductName">Product Name:</label></div><div class="col-md-6"><input type="text" class="in" id="editProductName" required></div></div>
+                <div class="row ask"><div class="col-md-6"><label class="Q" for="editCity">City:</label></div><div class="col-md-6"><input type="text" class="in" id="editCity" required></div></div>
+                <div class="row ask"><div class="col-md-6"><label class="Q" for="editSales">Sales:</label></div><div class="col-md-6"><input type="number" step="0.01" min="0" class="in" id="editSales" required></div></div>
+                <div class="row ask"><div class="col-md-6"></div><div class="col-md-6"><button type="submit" class="btn btnSelect">Save Changes</button></div></div>
+            </form>
+        </div>
     </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="JS/auth.js"></script>
+    <script src="JS/data.js"></script>
+    <script src="JS/ui.js"></script>
+    <script src="JS/nav.js"></script>
+    <script>
+        var records = GSData.getRecords();
+        var selectedId = null;
+
+        function renderTable(list) {
+            document.getElementById('tableBody').innerHTML = list.map(function (r) {
+                var selectedClass = r.id === selectedId ? ' row-selected' : '';
+                return '<tr class="row-selectable' + selectedClass + '" data-id="' + r.id + '">' +
+                    '<td>' + r.id + '</td><td>' + r.orderDate + '</td><td>' + r.customerId + '</td><td>' + r.customerName + '</td>' +
+                    '<td>' + r.segment + '</td><td>' + r.productId + '</td><td>' + r.productName + '</td><td>' + r.category + '</td>' +
+                    '<td>' + r.city + '</td><td>' + r.sales.toFixed(2) + '</td></tr>';
+            }).join('') || '<tr><td colspan="10">No records match your search.</td></tr>';
+
+            document.querySelectorAll('#tableBody tr[data-id]').forEach(function (row) {
+                row.addEventListener('click', function () {
+                    selectedId = Number(row.getAttribute('data-id'));
+                    renderTable(currentList());
+                });
+            });
+        }
+
+        function currentList() {
+            var term = document.getElementById('searchInput').value.toLowerCase();
+            if (!term) return records;
+            return records.filter(function (r) {
+                return Object.values(r).join(' ').toLowerCase().indexOf(term) !== -1;
+            });
+        }
+
+        renderTable(records);
+        document.getElementById('searchInput').addEventListener('input', function () { renderTable(currentList()); });
+
+        document.getElementById('deleteBtn').addEventListener('click', function () {
+            if (selectedId === null) { GSUI.showToast('Select a row first.', true); return; }
+            GSData.deleteRecord(selectedId);
+            records = GSData.getRecords();
+            selectedId = null;
+            renderTable(currentList());
+            GSUI.showToast('Record deleted.');
+        });
+
+        var editModal = document.getElementById('editModal');
+        document.getElementById('editBtn').addEventListener('click', function () {
+            if (selectedId === null) { GSUI.showToast('Select a row first.', true); return; }
+            var record = records.find(function (r) { return r.id === selectedId; });
+            document.getElementById('editOrderDate').value = record.orderDate;
+            document.getElementById('editCustomerName').value = record.customerName;
+            document.getElementById('editProductName').value = record.productName;
+            document.getElementById('editCity').value = record.city;
+            document.getElementById('editSales').value = record.sales;
+            editModal.style.display = 'block';
+        });
+        document.getElementById('closeModal').addEventListener('click', function () { editModal.style.display = 'none'; });
+        window.addEventListener('click', function (e) { if (e.target === editModal) editModal.style.display = 'none'; });
+
+        document.getElementById('editForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            var record = records.find(function (r) { return r.id === selectedId; });
+            record.orderDate = document.getElementById('editOrderDate').value;
+            record.customerName = document.getElementById('editCustomerName').value.trim();
+            record.productName = document.getElementById('editProductName').value.trim();
+            record.city = document.getElementById('editCity').value.trim();
+            record.sales = parseFloat(document.getElementById('editSales').value) || 0;
+            GSData.updateRecord(record);
+            records = GSData.getRecords();
+            editModal.style.display = 'none';
+            renderTable(currentList());
+            GSUI.showToast('Record updated.');
+        });
+
+        document.getElementById('exportBtn').addEventListener('click', function () {
+            GSUI.downloadCsv('gs-analytics-records.csv', currentList(), [
+                { key: 'id', label: 'ID' }, { key: 'orderDate', label: 'Order Date' },
+                { key: 'customerId', label: 'Customer ID' }, { key: 'customerName', label: 'Customer Name' },
+                { key: 'segment', label: 'Segment' }, { key: 'productId', label: 'Product ID' },
+                { key: 'productName', label: 'Product Name' }, { key: 'category', label: 'Category' },
+                { key: 'city', label: 'City' }, { key: 'sales', label: 'Sales' }
+            ]);
+        });
+    </script>
 </body>
+</html>

@@ -1,9 +1,16 @@
-body {
+body.login-body {
+    background-image: linear-gradient(rgba(29,54,63,0.55), rgba(29,54,63,0.55)), url(../Images/background.png);
     background-repeat: no-repeat;
-    background-attachment: fixed; 
+    background-attachment: fixed;
     background-size: cover;
+    background-position: center;
     padding-bottom: 40px!important;
+    padding-left: 0;
     font-family: 'Raleway'!important;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 /*Login*/
 .user-input-wrp {
@@ -46,13 +53,17 @@ body {
 }
 /*Forgot, signup*/
 .lg-span{
-    opacity: 0.8;
-    font-size: 0.8em;
-    margin-left: 35%;
+    opacity: 0.9;
+    font-size: 0.85em;
+    margin-top: 0.8em;
+    display: block;
 }
 .lg-span a{
-    color: #1a444d;
-
+    color: #7fd4cf;
+}
+.lg-span a:hover{
+    color: #ffffff;
+    text-decoration: underline!important;
 }
 
 .lgBtn{
@@ -68,16 +79,28 @@ body {
 .main{
     background-color: rgba(0, 0, 0, 0.5);
     padding: 2em;
-    width: 40%;
-    height: 25em;
-    border-radius: 5px;
-    margin-top: 3.8em;
+    width: 90%;
+    max-width: 420px;
+    border-radius: 8px;
+    text-align: center;
 }
 h3,h1{
     color: rgba(255, 255, 255, 0.904)!important;
 }
 
 .logo{
-    height: 120px;
-    margin-top: 2em;
+    height: 90px;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+.login-error{
+    color: #ff9d9d;
+    font-size: 0.85em;
+    min-height: 1.2em;
+    margin-top: 0.5em;
+}
+.demo-hint{
+    color: rgba(255,255,255,0.6);
+    font-size: 0.78em;
+    margin-top: 1.2em;
 }

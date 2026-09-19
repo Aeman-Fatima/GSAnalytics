@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>GS Analytics — Cities</title>
+    <link rel="icon" href="Images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha384-PPIZEGYM1v8zp5Py7UjFb79S58UeqCL9pYVnVPURKEqvioPROaVAJKKLzvH2rDnI" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link href="https://fonts.googleapis.com/css?family=Raleway:300,400,500i,900,900i" rel="stylesheet">
+    <link rel="stylesheet" href="CSS/Theme.css">
+</head>
+<body data-page="cities">
+    <script>if (sessionStorage.getItem('gsa.session') !== '1') { window.location.replace('index.html'); }</script>
+
+    <button id="navToggle" class="navToggle" aria-label="Toggle navigation"><i class="fa-solid fa-bars"></i></button>
+    <div class="sidenav"></div>
+    <nav class="sidenav2" id="sidenav2"></nav>
+
+    <header class="fluid-container center topbar">
+        <div class="row align-items-center">
+            <div class="col-md-3">
+                <img src="Images/logo.png" class="logo" alt="GS Analytics logo"/>
+            </div>
+            <div class="col-md-6">
+                <span class="vertical-middle">Sales by City</span>
+            </div>
+            <div class="col-md-3">
+                <span class="uprTxt" data-user></span>
+                <a href="#" class="uprTxt" data-action="logout" style="margin-left:10px;">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="fluid-container center">
+        <div class="container main-body">
+            <div class="chart-card">
+                <h2>Sales by City</h2>
+                <canvas id="cityChart"></canvas>
+            </div>
+
+            <div class='search'>
+                <input id="searchInput" name='search' type='text' class='searchTerm' placeholder='Search cities…' aria-label="Search cities">
+                <button type='button' class='searchButton'><img class="searchIcon" src='Images/filter.png' alt=""/></button>
+            </div>
+            <div class="table-scroll">
+                <table class="table">
+                    <thead>
+                        <tr><th>City</th><th>Orders</th><th>Total Sales</th></tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js" integrity="sha384-XcdcwHqIPULERb2yDEM4R0XaQKU3YnDsrTmjACBZyfdVVqjh6xQ4/DCMd7XLcA6Y" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="JS/auth.js"></script>
+    <script src="JS/data.js"></script>
+    <script src="JS/ui.js"></script>
+    <script src="JS/nav.js"></script>
+    <script>
+        var records = GSData.getRecords();
+        var byCity = GSData.aggregate(records, 'city');
+        var rows = byCity.map(function (c) { return { city: c.key, orders: c.count, total: c.total }; });
+
+        function renderTable(list) {
+            document.getElementById('tableBody').innerHTML = list.map(function (r) {
+                return '<tr><td>' + r.city + '</td><td>' + r.orders + '</td><td>$' + r.total.toFixed(2) + '</td></tr>';
+            }).join('') || '<tr><td colspan="3">No cities match your search.</td></tr>';
+        }
+        renderTable(rows);
+
+        document.getElementById('searchInput').addEventListener('input', function (e) {
+            var term = e.target.value.toLowerCase();
+            renderTable(rows.filter(function (r) { return r.city.toLowerCase().indexOf(term) !== -1; }));
+        });
+
+        new Chart(document.getElementById('cityChart'), {
+            type: 'bar',
+            data: { labels: rows.map(function (r) { return r.city; }), datasets: [{ label: 'Sales', data: rows.map(function (r) { return r.total; }), backgroundColor: '#1d363f' }] },
+            options: { responsive: true, plugins: { legend: { display: false } }, indexAxis: 'y' }
+        });
+    </script>
+</body>
+</html>

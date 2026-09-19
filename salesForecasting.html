@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>GS Analytics — Sales Forecast</title>
+    <link rel="icon" href="Images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha384-PPIZEGYM1v8zp5Py7UjFb79S58UeqCL9pYVnVPURKEqvioPROaVAJKKLzvH2rDnI" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link href="https://fonts.googleapis.com/css?family=Raleway:300,400,500i,900,900i" rel="stylesheet">
+    <link rel="stylesheet" href="CSS/Theme.css">
+</head>
+<body data-page="forecast">
+    <script>if (sessionStorage.getItem('gsa.session') !== '1') { window.location.replace('index.html'); }</script>
+
+    <button id="navToggle" class="navToggle" aria-label="Toggle navigation"><i class="fa-solid fa-bars"></i></button>
+    <div class="sidenav"></div>
+    <nav class="sidenav2" id="sidenav2"></nav>
+
+    <header class="fluid-container center topbar">
+        <div class="row align-items-center">
+            <div class="col-md-3">
+                <img src="Images/logo.png" class="logo" alt="GS Analytics logo"/>
+            </div>
+            <div class="col-md-6">
+                <span class="vertical-middle">Sales Forecast</span>
+            </div>
+            <div class="col-md-3">
+                <span class="uprTxt" data-user></span>
+                <a href="#" class="uprTxt" data-action="logout" style="margin-left:10px;">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="fluid-container center">
+        <div class="container main-body">
+            <div class="chart-card">
+                <h2>Monthly Sales — Actual and Projected</h2>
+                <canvas id="forecastChart"></canvas>
+                <p class="note"><i class="fa-solid fa-circle-info"></i> The dashed line is a simple linear trend line fitted to the demo data's monthly totals — a rough illustration, not a statistical forecasting model.</p>
+            </div>
+
+            <div class="table-scroll">
+                <table class="table">
+                    <thead><tr><th>Month</th><th>Total Sales</th><th>Type</th></tr></thead>
+                    <tbody id="forecastBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js" integrity="sha384-XcdcwHqIPULERb2yDEM4R0XaQKU3YnDsrTmjACBZyfdVVqjh6xQ4/DCMd7XLcA6Y" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="JS/auth.js"></script>
+    <script src="JS/data.js"></script>
+    <script src="JS/ui.js"></script>
+    <script src="JS/nav.js"></script>
+    <script>
+        var records = GSData.getRecords();
+        var monthly = GSData.monthly(records);
+        var futurePeriods = 3;
+        var projected = GSData.forecast(monthly.map(function (m) { return m.total; }), futurePeriods);
+
+        function nextMonthLabel(label, offset) {
+            var parts = label.split('-').map(Number);
+            var date = new Date(parts[0], parts[1] - 1 + offset, 1);
+            return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
+        }
+        var lastMonth = monthly[monthly.length - 1].month;
+        var futureLabels = [];
+        for (var i = 1; i <= futurePeriods; i++) futureLabels.push(nextMonthLabel(lastMonth, i));
+
+        var allLabels = monthly.map(function (m) { return m.month; }).concat(futureLabels);
+        var actualData = monthly.map(function (m) { return m.total; }).concat(futureLabels.map(function () { return null; }));
+        var forecastData = monthly.map(function () { return null; });
+        forecastData[forecastData.length - 1] = monthly[monthly.length - 1].total;
+        forecastData = forecastData.concat(projected);
+
+        new Chart(document.getElementById('forecastChart'), {
+            type: 'line',
+            data: {
+                labels: allLabels,
+                datasets: [
+                    { label: 'Actual', data: actualData, borderColor: '#1d363f', backgroundColor: 'rgba(29,54,63,0.1)', fill: true, tension: 0.25 },
+                    { label: 'Projected', data: forecastData, borderColor: '#2b7a78', borderDash: [6, 4], fill: false, tension: 0.25 }
+                ]
+            },
+            options: { responsive: true }
+        });
+
+        var rows = monthly.map(function (m) { return { month: m.month, total: m.total, type: 'Actual' }; })
+            .concat(futureLabels.map(function (m, idx) { return { month: m, total: projected[idx], type: 'Projected' }; }));
+        document.getElementById('forecastBody').innerHTML = rows.map(function (r) {
+            return '<tr><td>' + r.month + '</td><td>$' + r.total.toFixed(2) + '</td><td>' + r.type + '</td></tr>';
+        }).join('');
+    </script>
+</body>
+</html>

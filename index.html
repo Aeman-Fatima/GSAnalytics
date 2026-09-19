@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>GS Analytics — Log In</title>
+    <meta name="description" content="Sales analytics dashboard for tracking customers, products and revenue.">
+    <link rel="icon" href="Images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link href="https://fonts.googleapis.com/css?family=Raleway:300,400,500i,900,900i" rel="stylesheet">
+    <link rel="stylesheet" href="CSS/Theme.css">
+    <link rel="stylesheet" href="CSS/login.css">
+</head>
+<body class="login-body">
+    <div class="main">
+        <img src="Images/logoWhite.png" class="logo" alt="GS Analytics logo">
+        <h1>GS Analytics</h1>
+        <p style="color: rgba(255,255,255,0.75); margin-top: -0.5em;">Sales dashboard sign in</p>
+
+        <form id="loginForm" novalidate>
+            <div class="user-input-wrp">
+                <input type="text" name="username" id="username" class="inputText" required autocomplete="username">
+                <span class="floating-label">Username or email</span>
+            </div>
+            <div class="user-input-wrp">
+                <input type="password" name="password" id="password" class="inputText" required autocomplete="current-password">
+                <span class="floating-label">Password</span>
+            </div>
+            <div class="login-error" id="loginError" role="alert"></div>
+            <button type="submit" class="btn lgBtn">Log In</button>
+        </form>
+
+        <div class="lg-span">
+            <a href="#" tabindex="-1">Forgot password?</a> &middot; <a href="#" tabindex="-1">Sign up</a>
+        </div>
+        <p class="demo-hint">Demo only — no account exists on a server. Any username and password logs you in.</p>
+    </div>
+
+    <script src="JS/auth.js"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            var username = document.getElementById('username').value.trim();
+            var password = document.getElementById('password').value;
+            var errorEl = document.getElementById('loginError');
+            if (!username || !password) {
+                errorEl.textContent = 'Enter a username and password to continue.';
+                return;
+            }
+            errorEl.textContent = '';
+            GSAuth.login(username);
+            window.location.href = 'main.html';
+        });
+
+        if (GSAuth.isLoggedIn()) {
+            window.location.replace('main.html');
+        }
+    </script>
+</body>
+</html>
