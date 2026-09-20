@@ -1,0 +1,16 @@
+# .NET
+backend/**/bin/
+backend/**/obj/
+backend/**/*.user
+*.suo
+
+# Local-only config / secrets (never commit real connection strings or keys)
+backend/**/appsettings.Local.json
+backend/**/appsettings.*.local.json
+backend/**/*.env
+.env
+
+# IDE / OS
+.vs/
+.vscode/
+.DS_Store

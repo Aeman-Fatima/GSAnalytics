@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/GSAnalytics.Api/GSAnalytics.Api.csproj" />
+    <Project Path="src/GSAnalytics.Application/GSAnalytics.Application.csproj" />
+    <Project Path="src/GSAnalytics.Domain/GSAnalytics.Domain.csproj" />
+    <Project Path="src/GSAnalytics.Infrastructure/GSAnalytics.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/GSAnalytics.Tests/GSAnalytics.Tests.csproj" />
+  </Folder>
+</Solution>
