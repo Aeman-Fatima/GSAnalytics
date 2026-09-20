@@ -1,20 +1,87 @@
-# GS Analytics
+# GS Analytics — Sales Intelligence for Small Businesses
 
-Small-business sales intelligence without enterprise BI complexity.
+A small, genuinely useful sales intelligence app for small businesses: track customers, products and
+sales, import a CSV export from wherever you currently keep records, and see deterministic,
+explainable analytics — which customers have gone quiet, which products are trending, a simple sales
+forecast — without any of it being dressed up as "AI." Every number on every page is either a stored
+fact or a documented arithmetic rule you could reproduce by hand.
 
-GS Analytics is a multi-tenant web application for tracking customers, products and sales. It provides clear dashboards, searchable drill-down views and explainable insights designed for a business owner—not a data analyst.
+**Frontend:** hand-built HTML/CSS/vanilla JS (Bootstrap 5, Font Awesome 6, Chart.js — all from cdnjs,
+no vendored copies, no build step).
+**Backend:** ASP.NET Core Web API (.NET 10) + Entity Framework Core + PostgreSQL, with JWT
+authentication and strict per-business data isolation.
 
 It is **not intended to compete with Power BI** and does not present simple arithmetic as artificial intelligence. Its goal is narrower: make everyday sales data useful, understandable and actionable.
 
-## Features
+```
+GSAnalytics/
+├── index.html, main.html, stats.html, salesBy*.html,      # frontend pages
+│   salesForecasting.html, data.html, insights.html,
+│   importData.html, add*.html
+├── JS/
+│   ├── api.js       shared fetch wrapper (auth header, 401-retry-with-refresh)
+│   ├── auth.js       login/register/refresh — access token kept in memory only
+│   ├── data.js       all API calls (customers/products/sales/imports/insights) + client-side aggregation
+│   ├── nav.js         shared sidebar
+│   ├── ui.js           toasts, CSV export
+│   └── palette.js     colorblind-safe chart palette
+├── CSS/, Images/
+└── backend/
+    ├── src/
+    │   ├── GSAnalytics.Domain            entities only, no framework dependencies
+    │   ├── GSAnalytics.Application       security, auth, imports, insights — interfaces + logic
+    │   ├── GSAnalytics.Infrastructure    EF Core DbContext, migrations, demo data seeder, implementations
+    │   └── GSAnalytics.Api               controllers, Program.cs, appsettings
+    ├── tests/GSAnalytics.Tests            xUnit — model tests + full API integration tests
+    ├── Dockerfile, docker-compose.yml, .env.example
+    └── GSAnalytics.slnx
+```
 
-### Accounts and tenant isolation
+## Architecture notes
 
-- Business-owner registration and login.
-- Short-lived JWT access tokens stored in memory.
-- HttpOnly refresh cookies.
-- Refresh-token rotation and reuse detection.
-- Strict business-level isolation for all operational and analytical data.
+- **No repository-wrapping-EF, no MediatR/CQRS.** Controllers talk to `GSAnalyticsDbContext` directly.
+  Abstractions exist only where they earn their keep: CSV importing, insights, JWT/current-user
+  context.
+- **BusinessId is never trusted from the client.** Every business-scoped endpoint reads it from the
+  authenticated user's JWT claims (`ICurrentUserService`), never from a route/query/body value. See
+  `backend/tests/GSAnalytics.Tests/BusinessIsolationTests.cs` for the tests that prove this.
+- **Auth:** short-lived JWT access token (15 min) held only in an in-memory JS variable — never in
+  `localStorage`/`sessionStorage` — plus an HttpOnly/Secure/SameSite=Lax refresh cookie backed by a
+  `RefreshToken` table with rotation and reuse detection (presenting an already-rotated token revokes
+  the whole chain). Because this is a multi-page app, not an SPA, every page silently re-derives a
+  fresh access token from the refresh cookie on load.
+- **Money is always `decimal`.** `SaleItem.LineTotal` (`Quantity * UnitPrice`) is computed, never
+  persisted.
+- **CSV import** matches customers/products by name (creating them if unseen) and never blocks on a
+  duplicate file — it warns (via a SHA-256 file hash comparison) and imports anyway. Partial success is
+  normal: each row succeeds or fails independently, with reasons reported back.
+- **Insights are simple, documented rules, not statistics or ML:** a customer "needs attention" when
+  they've gone > 1.5× their own average order-to-order gap without a new order; a product is
+  "Growing"/"Declining" when its trailing-30-day sales differ from the prior 30 days by more than 10%.
+
+## Running locally
+
+### Backend
+
+Requires the .NET 10 SDK and a local PostgreSQL instance.
+
+```bash
+cd backend
+dotnet user-secrets set "ConnectionStrings:GSAnalytics" "Host=localhost;Database=gsanalytics;Username=<you>;Password=<yours>" --project src/GSAnalytics.Api
+dotnet user-secrets set "Jwt:Key" "$(openssl rand -base64 48)" --project src/GSAnalytics.Api
+dotnet run --project src/GSAnalytics.Api
+```
+
+In Development, migrations apply and demo data seeds automatically on startup — no separate step
+needed. Swagger UI is at `https://localhost:<port>/swagger`.
+
+**Demo account:** `demo@harborpointwholesale.test` / `Demo123!` — a fictional wholesale supplier with
+~12 months of intentionally-patterned history (repeat customers, one declining, one overdue, a growing
+product, a declining product, seasonal variation) so every analytics page has something real to show.
+
+### Frontend
+
+Any static file server, from the repo root (not `backend/`):
 
 ### Customer, product and sales management
 
@@ -100,186 +167,38 @@ Entity Framework Core
 PostgreSQL
 ```
 
-Controllers use the EF Core database context directly. Supporting services are used where behaviour has a distinct responsibility, such as authentication, token management, CSV processing or analytics. This keeps the request path visible while avoiding a single oversized controller layer.
+Open the served `index.html`. `JS/api.js` points at `https://localhost:5443/api` for `localhost`/
+`127.0.0.1` origins — update it if your backend runs on a different port.
 
-The original frontend was built manually with HTML, CSS and JavaScript. It now communicates with the ASP.NET Core API instead of storing application data in `localStorage`.
-
-## Data model
-
-The main domain concepts are:
-
-- **Business** — the tenant that owns all operational data.
-- **User** — the authenticated business owner.
-- **Customer** — a buyer belonging to one business.
-- **Product** — an item sold by one business.
-- **Sale** — an order placed by a customer.
-- **Sale item** — a product, quantity and price within an order.
-- **Refresh token** — a rotatable authentication credential with reuse detection.
-- **Import record** — metadata used to identify previous CSV uploads.
-
-Every tenant-owned entity is associated with a business. The planned `BusinessMembership` relationship will allow multiple users to belong to one business without changing the ownership model.
-
-## Security model
-
-### Access tokens
-
-The client keeps the short-lived JWT access token in memory rather than persistent browser storage. This reduces exposure to token theft through persistent storage mechanisms.
-
-### Refresh tokens
-
-The refresh token is delivered through an HttpOnly cookie and is not directly accessible to browser JavaScript. Tokens are rotated when used. If an already-rotated token is presented again, the application treats it as possible theft and invalidates the related token family.
-
-### Tenant isolation
-
-Tenant isolation is enforced on the server. Requests derive the authenticated business identity from the validated security context, and business-owned queries are scoped using that identity. A client-supplied business identifier is not trusted as proof of ownership.
-
-> This is a portfolio and product-development project, not an independently audited security product. Production deployment should include a formal security review, HTTPS-only cookies, environment-specific secret management, monitoring and appropriate rate limiting.
-
-## Explainable insights
-
-GS Analytics intentionally uses deterministic calculations rather than AI-generated conclusions.
-
-### Inactive customers
-
-Customer inactivity is evaluated relative to the customer's own historical ordering rhythm. This is more useful than applying one universal inactivity threshold to every customer.
-
-### Product trends
-
-Recent product performance is compared over a defined 30-day analysis period to identify upward or downward movement.
-
-### Sales projection
-
-The current forecast is a simple linear projection calculated in the browser. It is labelled as illustrative because it does not account for seasonality, uncertainty, external influences or causal relationships.
-
-## CSV import flow
-
-1. Select a historical sales CSV.
-2. Review the detected columns.
-3. Map source columns to the GS Analytics fields.
-4. Validate and process the rows.
-5. Create previously unknown customers and products where required.
-6. Store the resulting orders and line items.
-7. Warn if the file appears to have been imported before.
-
-Duplicate detection is advisory rather than blocking. This gives the business owner control while still helping prevent accidental repetition.
-
-## Running locally
-
-### Prerequisites
-
-- .NET 10 SDK
-- PostgreSQL
-- A modern web browser
-- Docker, optional
-
-### 1. Clone the repository
+### Docker (backend + Postgres only)
 
 ```bash
-git clone <repository-url>
-cd <repository-directory>
+cd backend
+cp .env.example .env   # fill in POSTGRES_PASSWORD and JWT_KEY (openssl rand -base64 48)
+docker compose up --build
 ```
 
-### 2. Configure the backend
+This serves the API over **plain HTTP** on `:8080` (no dev HTTPS cert inside the container), so the
+`Secure` refresh cookie won't be set by the browser — fine for exercising the API via Swagger/curl with
+a bearer token, but the full frontend login flow needs the HTTPS-served `dotnet run` path above.
 
-Create a local development configuration using the keys expected by the application. At minimum, configure:
-
-- PostgreSQL connection string.
-- JWT signing key.
-- JWT issuer and audience, if enabled by the current configuration.
-- Allowed frontend origin.
-- Refresh-cookie settings appropriate for local development.
-
-Keep secrets out of source control. Use .NET user secrets or environment variables for sensitive values.
-
-### 3. Create the database
-
-Ensure PostgreSQL is running and that the configured database and user are available. Apply the EF Core migrations from the backend project:
+### Tests
 
 ```bash
-dotnet ef database update
-```
-
-If `dotnet ef` is not installed:
-
-```bash
-dotnet tool install --global dotnet-ef
-```
-
-### 4. Run the API
-
-From the backend project directory:
-
-```bash
-dotnet restore
-dotnet run
-```
-
-### 5. Run the frontend
-
-Serve the frontend directory through a local web server rather than opening the HTML files directly. Configure its API base URL to match the running backend.
-
-For example, if Python is available:
-
-```bash
-python3 -m http.server 5500
-```
-
-Then open the local frontend URL shown by the server.
-
-### 6. Explore the demo
-
-Use the seeded demo account shown by the application, or register a new business and import the included sample CSV.
-
-> Adjust commands and working directories to match the repository's actual solution structure.
-
-## Running with Docker
-
-A Docker image is included for the application. Supply the required database and authentication configuration through environment variables. For a complete local stack, run the application alongside PostgreSQL using your preferred container orchestration setup.
-
-The current release is container-ready but has not yet been deployed to Azure.
-
-## Testing
-
-Run the test suite with:
-
-```bash
+cd backend
 dotnet test
 ```
 
-The current integration tests require access to a real PostgreSQL database. They are not yet hermetic and will not run successfully in a clean CI environment unless a test database is provisioned.
+Includes fast EF model-metadata tests and full HTTP integration tests (auth, CRUD, business isolation,
+CSV import, insights) via `WebApplicationFactory`. The integration tests need a reachable local
+Postgres (same as `dotnet run`, since they reuse the Development auto-migrate/seed path) — they are not
+yet hermetic/CI-portable via an ephemeral test database, which is a known, deliberate scope cut for V1.
 
-Planned improvement: start an ephemeral PostgreSQL instance during the test job, apply migrations, execute the tests and remove the instance after completion.
+## Not yet built
 
-## Current limitations
-
-The following are deliberate scope boundaries for the current version:
-
-- Local-first; no production Azure deployment yet.
-- Forecasting still runs in the browser rather than through an API endpoint.
-- Integration tests require a separately provisioned PostgreSQL database.
-- One user per business in the current interface.
-- No subscriptions or billing.
-- No complex role-based permissions.
-- No Xero, Shopify, QuickBooks or Excel integrations.
-- No machine-learning forecasting or generative AI features.
-
-## Roadmap
-
-- [ ] Add multi-user businesses through `BusinessMembership`.
-- [ ] Move forecasting to a backend endpoint.
-- [ ] Add ephemeral PostgreSQL testing for CI.
-- [ ] Deploy the Dockerised application to Azure App Service.
-- [ ] Use managed PostgreSQL in production.
-- [ ] Add optional Xero, Shopify and QuickBooks connectors.
-- [ ] Add production monitoring, rate limiting and operational alerts.
-
-## Product principles
-
-1. **Useful before impressive** — solve practical business questions first.
-2. **Explainable by default** — users should understand where an insight came from.
-3. **Secure tenant boundaries** — business data must remain isolated.
-4. **Simple architecture with clear responsibilities** — abstractions must earn their place.
-5. **Add complexity only when the product requires it** — integrations, billing and AI are later-stage capabilities, not first-release decoration.
+- Server-side forecasting (the sales forecast is still a client-side linear regression, same
+  deterministic math, just not yet ported to an endpoint).
+- Azure/production deployment (explicitly deferred; this is a local-first V1).
 
 ## Screenshots
 
@@ -287,12 +206,3 @@ The following are deliberate scope boundaries for the current version:
 2. Customer inactivity insights: ![Insights](screenshots/insights.png)
 3. Product trend analysis. ![Products](screenshots/insights.png)
 4. Customer or product drill-down: ![Sales Forecast](screenshots/sales-forecast.png)
-
-## Project status
-
-GS Analytics is an active local-first portfolio project. The core sales-management, import, dashboard and explainable-insight workflows are implemented. Production deployment and external integrations remain future work.
-
-## License
-
-Add the licence that matches your intended use before publishing the repository. If the source is intended only for portfolio review, state that explicitly. If you want others to reuse the project, consider an OSI-approved licence such as MIT.
-
