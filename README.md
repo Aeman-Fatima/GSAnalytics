@@ -283,11 +283,10 @@ The following are deliberate scope boundaries for the current version:
 
 ## Screenshots
 
-1. Dashboard overview.
-3. CSV column mapping.
-4. Customer inactivity insights.
-5. Product trend analysis.
-6. Customer or product drill-down.
+1. Dashboard overview: ![Dashboard](screenshots/dashboard.png)
+2. Customer inactivity insights: ![Insights](screenshots/insights.png)
+3. Product trend analysis. ![Products](screenshots/insights.png)
+4. Customer or product drill-down: ![Sales Forecast](screenshots/sales-forecast.png)
 
 ## Project status
 
