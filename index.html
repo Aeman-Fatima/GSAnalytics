@@ -7,6 +7,7 @@
     <meta name="description" content="Sales analytics dashboard for tracking customers, products and revenue.">
     <link rel="icon" href="Images/logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha384-PPIZEGYM1v8zp5Py7UjFb79S58UeqCL9pYVnVPURKEqvioPROaVAJKKLzvH2rDnI" crossorigin="anonymous" referrerpolicy="no-referrer">
     <link href="https://fonts.googleapis.com/css?family=Raleway:300,400,500i,900,900i" rel="stylesheet">
     <link rel="stylesheet" href="CSS/Theme.css">
     <link rel="stylesheet" href="CSS/login.css">
@@ -17,44 +18,114 @@
         <h1>GS Analytics</h1>
         <p style="color: rgba(255,255,255,0.75); margin-top: -0.5em;">Sales dashboard sign in</p>
 
+        <div class="mode-tabs" role="tablist">
+            <button type="button" class="mode-tab active" id="loginTab" role="tab" aria-selected="true">Log In</button>
+            <button type="button" class="mode-tab" id="registerTab" role="tab" aria-selected="false">Create Account</button>
+        </div>
+
         <form id="loginForm" novalidate>
             <div class="user-input-wrp">
-                <input type="text" name="username" id="username" class="inputText" required autocomplete="username">
-                <span class="floating-label">Username or email</span>
+                <i class="fa-solid fa-envelope field-icon"></i>
+                <input type="email" name="email" id="email" class="inputText" required autocomplete="username" aria-label="Email" autofocus>
+                <span class="floating-label">Email</span>
             </div>
             <div class="user-input-wrp">
-                <input type="password" name="password" id="password" class="inputText" required autocomplete="current-password">
+                <i class="fa-solid fa-lock field-icon"></i>
+                <input type="password" name="password" id="password" class="inputText" required autocomplete="current-password" aria-label="Password" minlength="8">
                 <span class="floating-label">Password</span>
+                <button type="button" class="password-toggle" id="passwordToggle" aria-label="Show password"><i class="fa-solid fa-eye"></i></button>
             </div>
+            <p class="field-hint" id="passwordHint" style="display:none;">At least 8 characters.</p>
+
+            <div class="user-input-wrp" id="displayNameWrp" style="display:none;">
+                <i class="fa-solid fa-user field-icon"></i>
+                <input type="text" name="displayName" id="displayName" class="inputText" autocomplete="name" aria-label="Your name">
+                <span class="floating-label">Your name</span>
+            </div>
+            <div class="user-input-wrp" id="businessNameWrp" style="display:none;">
+                <i class="fa-solid fa-shop field-icon"></i>
+                <input type="text" name="businessName" id="businessName" class="inputText" autocomplete="organization" aria-label="Business name">
+                <span class="floating-label">Business name</span>
+            </div>
+
             <div class="login-error" id="loginError" role="alert"></div>
-            <button type="submit" class="btn lgBtn">Log In</button>
+            <button type="submit" class="btn lgBtn" id="submitBtn">
+                <span id="submitBtnLabel">Log In</span>
+                <i class="fa-solid fa-circle-notch fa-spin" id="submitBtnSpinner" style="display:none;"></i>
+            </button>
         </form>
 
-        <div class="lg-span">
-            <a href="#" tabindex="-1">Forgot password?</a> &middot; <a href="#" tabindex="-1">Sign up</a>
-        </div>
-        <p class="demo-hint">Demo only — no account exists on a server. Any username and password logs you in.</p>
+        <p class="demo-hint">Demo account: demo@harborpointwholesale.test / Demo123!</p>
     </div>
 
+    <script src="JS/api.js"></script>
     <script src="JS/auth.js"></script>
     <script>
-        document.getElementById('loginForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-            var username = document.getElementById('username').value.trim();
-            var password = document.getElementById('password').value;
-            var errorEl = document.getElementById('loginError');
-            if (!username || !password) {
-                errorEl.textContent = 'Enter a username and password to continue.';
-                return;
-            }
-            errorEl.textContent = '';
-            GSAuth.login(username);
-            window.location.href = 'main.html';
+        var isRegisterMode = false;
+
+        function setMode(registerMode) {
+            isRegisterMode = registerMode;
+            document.getElementById('loginTab').classList.toggle('active', !registerMode);
+            document.getElementById('loginTab').setAttribute('aria-selected', String(!registerMode));
+            document.getElementById('registerTab').classList.toggle('active', registerMode);
+            document.getElementById('registerTab').setAttribute('aria-selected', String(registerMode));
+
+            document.getElementById('displayNameWrp').style.display = registerMode ? '' : 'none';
+            document.getElementById('businessNameWrp').style.display = registerMode ? '' : 'none';
+            document.getElementById('displayName').required = registerMode;
+            document.getElementById('businessName').required = registerMode;
+            document.getElementById('passwordHint').style.display = registerMode ? '' : 'none';
+            document.getElementById('password').autocomplete = registerMode ? 'new-password' : 'current-password';
+            document.getElementById('submitBtnLabel').textContent = registerMode ? 'Create Account' : 'Log In';
+            document.getElementById('loginError').textContent = '';
+        }
+
+        document.getElementById('loginTab').addEventListener('click', function () { setMode(false); });
+        document.getElementById('registerTab').addEventListener('click', function () { setMode(true); });
+
+        document.getElementById('passwordToggle').addEventListener('click', function () {
+            var input = document.getElementById('password');
+            var icon = this.querySelector('i');
+            var showing = input.type === 'text';
+            input.type = showing ? 'password' : 'text';
+            icon.className = showing ? 'fa-solid fa-eye' : 'fa-solid fa-eye-slash';
+            this.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
         });
 
-        if (GSAuth.isLoggedIn()) {
-            window.location.replace('main.html');
+        function setLoading(isLoading) {
+            document.getElementById('submitBtn').disabled = isLoading;
+            document.getElementById('submitBtnLabel').style.display = isLoading ? 'none' : '';
+            document.getElementById('submitBtnSpinner').style.display = isLoading ? '' : 'none';
         }
+
+        document.getElementById('loginForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            var email = document.getElementById('email').value.trim();
+            var password = document.getElementById('password').value;
+            var errorEl = document.getElementById('loginError');
+            errorEl.textContent = '';
+
+            if (isRegisterMode && password.length < 8) {
+                errorEl.textContent = 'Password must be at least 8 characters.';
+                return;
+            }
+
+            setLoading(true);
+            var action = isRegisterMode
+                ? GSAuth.register(email, password, document.getElementById('displayName').value.trim(), document.getElementById('businessName').value.trim())
+                : GSAuth.login(email, password);
+
+            action.then(function () {
+                window.location.href = 'main.html';
+            }).catch(function (err) {
+                setLoading(false);
+                errorEl.textContent = err.message || 'Something went wrong. Please try again.';
+            });
+        });
+
+        GSAuth.tryResumeSession().then(function (hasSession) {
+            if (hasSession) window.location.replace('main.html');
+        });
     </script>
 </body>
 </html>

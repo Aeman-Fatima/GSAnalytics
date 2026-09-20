@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>GS Analytics — Insights</title>
+    <link rel="icon" href="Images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha384-PPIZEGYM1v8zp5Py7UjFb79S58UeqCL9pYVnVPURKEqvioPROaVAJKKLzvH2rDnI" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link href="https://fonts.googleapis.com/css?family=Raleway:300,400,500i,900,900i" rel="stylesheet">
+    <link rel="stylesheet" href="CSS/Theme.css">
+    <style>
+        .badge-attention { background: #fde8e8; color: #b42318; padding: 0.2em 0.6em; border-radius: 999px; font-size: 0.85em; font-weight: 600; }
+        .badge-ok { background: #e8f5e9; color: #2e7d32; padding: 0.2em 0.6em; border-radius: 999px; font-size: 0.85em; font-weight: 600; }
+        .badge-growing { background: #e8f5e9; color: #2e7d32; padding: 0.2em 0.6em; border-radius: 999px; font-size: 0.85em; font-weight: 600; }
+        .badge-declining { background: #fde8e8; color: #b42318; padding: 0.2em 0.6em; border-radius: 999px; font-size: 0.85em; font-weight: 600; }
+        .badge-stable { background: #eef0f2; color: #475467; padding: 0.2em 0.6em; border-radius: 999px; font-size: 0.85em; font-weight: 600; }
+        .badge-new { background: #e8eefd; color: #1d4ed8; padding: 0.2em 0.6em; border-radius: 999px; font-size: 0.85em; font-weight: 600; }
+    </style>
+</head>
+<body data-page="insights">
+    <div class="app-shell">
+        <nav class="sidebar" id="sidebar"></nav>
+        <div class="app-main">
+            <header class="topbar">
+                <button id="navToggle" class="navToggle" aria-label="Toggle navigation"><i class="fa-solid fa-bars"></i></button>
+                <h1 class="page-title">Insights</h1>
+            </header>
+            <main class="page-content">
+                <div class="chart-card">
+                    <h2>Customers Needing Attention</h2>
+                    <p class="note"><i class="fa-solid fa-circle-info"></i> Flagged when a customer has gone more than 1.5&times; their own average time-between-orders without a new order. A simple, explainable rule — not a prediction.</p>
+                    <div class="table-card">
+                        <div class="table-scroll">
+                            <table class="table">
+                                <thead><tr><th>Customer</th><th>Last Order</th><th class="num">Days Since</th><th class="num">Usual Cadence (days)</th><th>Status</th></tr></thead>
+                                <tbody id="attentionBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h2>Product Trends (Last 30 Days vs. Previous 30 Days)</h2>
+                    <p class="note"><i class="fa-solid fa-circle-info"></i> Growing/Declining requires more than a 10% change between the two windows — otherwise labeled Stable.</p>
+                    <div class="table-card">
+                        <div class="table-scroll">
+                            <table class="table">
+                                <thead><tr><th>Product</th><th class="num">Last 30 Days</th><th class="num">Previous 30 Days</th><th class="num">Change</th><th>Trend</th></tr></thead>
+                                <tbody id="trendBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="JS/api.js"></script>
+    <script src="JS/auth.js"></script>
+    <script src="JS/data.js"></script>
+    <script src="JS/ui.js"></script>
+    <script src="JS/nav.js"></script>
+    <script>
+      (async function () {
+        await GSAuth.requireAuth();
+
+        var results = await Promise.all([GSData.getCustomersNeedingAttention(), GSData.getProductTrends()]);
+        var attention = results[0], trends = results[1];
+
+        document.getElementById('attentionBody').innerHTML = attention.map(function (c) {
+            var badge = c.needsAttention ? '<span class="badge-attention">Needs Attention</span>' : '<span class="badge-ok">On Track</span>';
+            return '<tr><td>' + c.customerName + '</td><td>' + c.lastOrderDate + '</td><td class="num">' + c.daysSinceLastOrder + '</td><td class="num">' + c.averageCadenceDays + '</td><td>' + badge + '</td></tr>';
+        }).join('') || '<tr><td colspan="5">Not enough order history yet.</td></tr>';
+
+        var trendBadgeClass = { Growing: 'badge-growing', Declining: 'badge-declining', Stable: 'badge-stable', New: 'badge-new', NoRecentActivity: 'badge-stable' };
+        var trendLabel = { Growing: 'Growing', Declining: 'Declining', Stable: 'Stable', New: 'New', NoRecentActivity: 'No Recent Activity' };
+        document.getElementById('trendBody').innerHTML = trends.map(function (p) {
+            var change = p.percentChange === null ? '—' : (p.percentChange > 0 ? '+' : '') + p.percentChange.toFixed(1) + '%';
+            var badge = '<span class="' + trendBadgeClass[p.trend] + '">' + trendLabel[p.trend] + '</span>';
+            return '<tr><td>' + p.productName + '</td><td class="num">$' + p.currentPeriodTotal.toFixed(2) + '</td><td class="num">$' + p.previousPeriodTotal.toFixed(2) + '</td><td class="num">' + change + '</td><td>' + badge + '</td></tr>';
+        }).join('') || '<tr><td colspan="5">Not enough sales history yet.</td></tr>';
+      })();
+    </script>
+</body>
+</html>

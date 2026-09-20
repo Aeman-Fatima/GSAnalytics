@@ -11,53 +11,54 @@
     <link rel="stylesheet" href="CSS/Theme.css">
 </head>
 <body data-page="forecast">
-    <script>if (sessionStorage.getItem('gsa.session') !== '1') { window.location.replace('index.html'); }</script>
+    <div class="app-shell">
+        <nav class="sidebar" id="sidebar"></nav>
+        <div class="app-main">
+            <header class="topbar">
+                <button id="navToggle" class="navToggle" aria-label="Toggle navigation"><i class="fa-solid fa-bars"></i></button>
+                <h1 class="page-title">Sales Forecast</h1>
+            </header>
+            <main class="page-content">
+                <div class="chart-card">
+                    <h2>Monthly Sales — Actual and Projected</h2>
+                    <canvas id="forecastChart"></canvas>
+                    <p class="note"><i class="fa-solid fa-circle-info"></i> The dashed line is a simple linear trend line fitted to the demo data's monthly totals — a rough illustration, not a statistical forecasting model.</p>
+                </div>
 
-    <button id="navToggle" class="navToggle" aria-label="Toggle navigation"><i class="fa-solid fa-bars"></i></button>
-    <div class="sidenav"></div>
-    <nav class="sidenav2" id="sidenav2"></nav>
-
-    <header class="fluid-container center topbar">
-        <div class="row align-items-center">
-            <div class="col-md-3">
-                <img src="Images/logo.png" class="logo" alt="GS Analytics logo"/>
-            </div>
-            <div class="col-md-6">
-                <span class="vertical-middle">Sales Forecast</span>
-            </div>
-            <div class="col-md-3">
-                <span class="uprTxt" data-user></span>
-                <a href="#" class="uprTxt" data-action="logout" style="margin-left:10px;">Logout</a>
-            </div>
+                <div class="table-card">
+                    <div class="table-scroll">
+                        <table class="table">
+                            <thead><tr><th>Month</th><th class="num">Total Sales</th><th>Type</th></tr></thead>
+                            <tbody id="forecastBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
         </div>
-    </header>
-
-    <main class="fluid-container center">
-        <div class="container main-body">
-            <div class="chart-card">
-                <h2>Monthly Sales — Actual and Projected</h2>
-                <canvas id="forecastChart"></canvas>
-                <p class="note"><i class="fa-solid fa-circle-info"></i> The dashed line is a simple linear trend line fitted to the demo data's monthly totals — a rough illustration, not a statistical forecasting model.</p>
-            </div>
-
-            <div class="table-scroll">
-                <table class="table">
-                    <thead><tr><th>Month</th><th>Total Sales</th><th>Type</th></tr></thead>
-                    <tbody id="forecastBody"></tbody>
-                </table>
-            </div>
-        </div>
-    </main>
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js" integrity="sha384-XcdcwHqIPULERb2yDEM4R0XaQKU3YnDsrTmjACBZyfdVVqjh6xQ4/DCMd7XLcA6Y" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="JS/api.js"></script>
     <script src="JS/auth.js"></script>
     <script src="JS/data.js"></script>
+    <script src="JS/palette.js"></script>
     <script src="JS/ui.js"></script>
     <script src="JS/nav.js"></script>
     <script>
-        var records = GSData.getRecords();
+      (async function () {
+        await GSAuth.requireAuth();
+
+        Chart.defaults.font.family = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
+        Chart.defaults.color = GS_PALETTE.ink;
+        Chart.defaults.borderColor = GS_PALETTE.grid;
+
+        var records = await GSData.getRecords();
         var monthly = GSData.monthly(records);
+        if (monthly.length === 0) {
+            document.querySelector('.page-content').innerHTML = '<p class="note">Add some sales records to see a forecast.</p>';
+            return;
+        }
         var futurePeriods = 3;
         var projected = GSData.forecast(monthly.map(function (m) { return m.total; }), futurePeriods);
 
@@ -81,18 +82,19 @@
             data: {
                 labels: allLabels,
                 datasets: [
-                    { label: 'Actual', data: actualData, borderColor: '#1d363f', backgroundColor: 'rgba(29,54,63,0.1)', fill: true, tension: 0.25 },
-                    { label: 'Projected', data: forecastData, borderColor: '#2b7a78', borderDash: [6, 4], fill: false, tension: 0.25 }
+                    { label: 'Actual', data: actualData, borderColor: GS_PALETTE.brand, backgroundColor: GS_PALETTE.brand + '1f', fill: true, tension: 0.25, borderWidth: 2, pointRadius: 3 },
+                    { label: 'Projected', data: forecastData, borderColor: GS_PALETTE.accent, borderDash: [6, 4], fill: false, tension: 0.25, borderWidth: 2, pointRadius: 3 }
                 ]
             },
-            options: { responsive: true }
+            options: { responsive: true, scales: { y: { grid: { color: GS_PALETTE.grid } }, x: { grid: { display: false } } } }
         });
 
         var rows = monthly.map(function (m) { return { month: m.month, total: m.total, type: 'Actual' }; })
             .concat(futureLabels.map(function (m, idx) { return { month: m, total: projected[idx], type: 'Projected' }; }));
         document.getElementById('forecastBody').innerHTML = rows.map(function (r) {
-            return '<tr><td>' + r.month + '</td><td>$' + r.total.toFixed(2) + '</td><td>' + r.type + '</td></tr>';
+            return '<tr><td>' + r.month + '</td><td class="num">$' + r.total.toFixed(2) + '</td><td>' + r.type + '</td></tr>';
         }).join('');
+      })();
     </script>
 </body>
 </html>

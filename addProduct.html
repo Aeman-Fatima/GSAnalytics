@@ -9,92 +9,62 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha384-PPIZEGYM1v8zp5Py7UjFb79S58UeqCL9pYVnVPURKEqvioPROaVAJKKLzvH2rDnI" crossorigin="anonymous" referrerpolicy="no-referrer">
     <link href="https://fonts.googleapis.com/css?family=Raleway:300,400,500i,900,900i" rel="stylesheet">
     <link rel="stylesheet" href="CSS/Theme.css">
-    <link rel="stylesheet" href="CSS/add.css">
 </head>
 <body data-page="addProduct">
-    <script>if (sessionStorage.getItem('gsa.session') !== '1') { window.location.replace('index.html'); }</script>
-
-    <button id="navToggle" class="navToggle" aria-label="Toggle navigation"><i class="fa-solid fa-bars"></i></button>
-    <div class="sidenav"></div>
-    <nav class="sidenav2" id="sidenav2"></nav>
-
-    <header class="fluid-container center topbar">
-        <div class="row align-items-center">
-            <div class="col-md-3">
-                <img src="Images/logo.png" class="logo" alt="GS Analytics logo"/>
-            </div>
-            <div class="col-md-6">
-                <span class="vertical-middle">Add New Product</span>
-            </div>
-            <div class="col-md-3">
-                <span class="uprTxt" data-user></span>
-                <a href="#" class="uprTxt" data-action="logout" style="margin-left:10px;">Logout</a>
-            </div>
-        </div>
-    </header>
-
-    <main class="fluid-container center">
-        <div class="container main-body">
-            <div class="container">
-                <form id="productForm" novalidate>
-                    <div class="row ask">
-                        <div class="col-md-6"><label class="Q" for="productId">Product ID:</label></div>
-                        <div class="col-md-6">
-                            <input class="in" type="text" id="productId" pattern="[A-Za-z]{3}-[A-Za-z]{2}-\d{8}" placeholder="AAA-AA-00000000" required>
-                            <div class="form-error" id="idError">Use the format AAA-AA-00000000.</div>
+    <div class="app-shell">
+        <nav class="sidebar" id="sidebar"></nav>
+        <div class="app-main">
+            <header class="topbar">
+                <button id="navToggle" class="navToggle" aria-label="Toggle navigation"><i class="fa-solid fa-bars"></i></button>
+                <h1 class="page-title">Add New Product</h1>
+            </header>
+            <main class="page-content">
+                <div class="form-card">
+                    <form id="productForm" novalidate>
+                        <div class="ask">
+                            <label class="Q" for="productName">Product Name</label>
+                            <input class="in" type="text" id="productName" placeholder="Product Name" required>
                         </div>
-                    </div>
-                    <div class="row ask">
-                        <div class="col-md-6"><label class="Q" for="productName">Product Name:</label></div>
-                        <div class="col-md-6"><input class="in" type="text" id="productName" placeholder="Product Name" required></div>
-                    </div>
-                    <div class="row ask">
-                        <div class="col-md-6"><label class="Q" for="category">Category:</label></div>
-                        <div class="col-md-6">
+                        <div class="ask">
+                            <label class="Q" for="category">Category</label>
                             <select class="in" id="category" required>
-                                <option class="select" disabled selected hidden value="">Select</option>
+                                <option disabled selected hidden value="">Select</option>
                                 <option>Technology</option>
                                 <option>Furniture</option>
                                 <option>Office Supplies</option>
                             </select>
                         </div>
-                    </div>
-                    <div class="row ask">
-                        <div class="col-md-6"></div>
-                        <div class="col-md-6"><button type="submit" class="btn btnSelect">Add Product</button></div>
-                    </div>
-                </form>
-            </div>
+                        <button type="submit" class="btnSelect">Add Product</button>
+                    </form>
+                </div>
+            </main>
         </div>
-    </main>
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="JS/api.js"></script>
     <script src="JS/auth.js"></script>
     <script src="JS/data.js"></script>
     <script src="JS/ui.js"></script>
     <script src="JS/nav.js"></script>
     <script>
+      (async function () {
+        await GSAuth.requireAuth();
+
         document.getElementById('productForm').addEventListener('submit', function (e) {
             e.preventDefault();
-            var id = document.getElementById('productId').value.trim().toUpperCase();
-            var idError = document.getElementById('idError');
-            if (!/^[A-Za-z]{3}-[A-Za-z]{2}-\d{8}$/.test(id)) { idError.classList.add('show'); return; }
-            idError.classList.remove('show');
-
-            var existing = GSData.getProducts();
-            if (existing.some(function (p) { return p.id === id; })) {
-                GSUI.showToast('A product with that ID already exists.', true);
-                return;
-            }
-
+            var form = this;
             GSData.addProduct({
-                id: id,
                 name: document.getElementById('productName').value.trim(),
                 category: document.getElementById('category').value
+            }).then(function () {
+                GSUI.showToast('Product added.');
+                form.reset();
+            }).catch(function (err) {
+                GSUI.showToast(err.message || 'Could not add product.', true);
             });
-            GSUI.showToast('Product added.');
-            this.reset();
         });
+      })();
     </script>
 </body>
 </html>

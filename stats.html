@@ -11,97 +11,85 @@
     <link rel="stylesheet" href="CSS/Theme.css">
 </head>
 <body data-page="stats">
-    <script>if (sessionStorage.getItem('gsa.session') !== '1') { window.location.replace('index.html'); }</script>
-
-    <button id="navToggle" class="navToggle" aria-label="Toggle navigation"><i class="fa-solid fa-bars"></i></button>
-    <div class="sidenav"></div>
-    <nav class="sidenav2" id="sidenav2"></nav>
-
-    <header class="fluid-container center topbar">
-        <div class="row align-items-center">
-            <div class="col-md-3">
-                <img src="Images/logo.png" class="logo" alt="GS Analytics logo"/>
-            </div>
-            <div class="col-md-6">
-                <span class="vertical-middle">Stats</span>
-            </div>
-            <div class="col-md-3">
-                <span class="uprTxt" data-user></span>
-                <a href="#" class="uprTxt" data-action="logout" style="margin-left:10px;">Logout</a>
-            </div>
-        </div>
-    </header>
-
-    <main class="fluid-container center">
-        <div class="container main-body">
-            <div class="row">
-                <div class="col-lg-6">
+    <div class="app-shell">
+        <nav class="sidebar" id="sidebar"></nav>
+        <div class="app-main">
+            <header class="topbar">
+                <button id="navToggle" class="navToggle" aria-label="Toggle navigation"><i class="fa-solid fa-bars"></i></button>
+                <h1 class="page-title">Stats</h1>
+            </header>
+            <main class="page-content">
+                <div class="grid-2">
                     <div class="chart-card">
                         <h2>Sales by Segment</h2>
                         <canvas id="segmentChart"></canvas>
                     </div>
-                </div>
-                <div class="col-lg-6">
                     <div class="chart-card">
                         <h2>Sales by Category</h2>
                         <canvas id="categoryChart"></canvas>
                     </div>
                 </div>
-            </div>
-            <div class="row">
-                <div class="col-lg-6">
+                <div class="grid-2">
                     <div class="chart-card">
                         <h2>Sales by City</h2>
                         <canvas id="cityChart"></canvas>
                     </div>
-                </div>
-                <div class="col-lg-6">
                     <div class="chart-card">
                         <h2>Top 5 Customers</h2>
                         <canvas id="topCustomersChart"></canvas>
                     </div>
                 </div>
-            </div>
+            </main>
         </div>
-    </main>
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js" integrity="sha384-XcdcwHqIPULERb2yDEM4R0XaQKU3YnDsrTmjACBZyfdVVqjh6xQ4/DCMd7XLcA6Y" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="JS/api.js"></script>
     <script src="JS/auth.js"></script>
     <script src="JS/data.js"></script>
+    <script src="JS/palette.js"></script>
     <script src="JS/ui.js"></script>
     <script src="JS/nav.js"></script>
     <script>
-        var records = GSData.getRecords();
-        var palette = ['#1d363f', '#2b7a78', '#3aafa9', '#def2f1', '#17252a', '#6fb3af'];
+      (async function () {
+        await GSAuth.requireAuth();
+
+        Chart.defaults.font.family = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
+        Chart.defaults.color = GS_PALETTE.ink;
+        Chart.defaults.borderColor = GS_PALETTE.grid;
+
+        var records = await GSData.getRecords();
+        var palette = GS_PALETTE.categorical;
 
         var bySegment = GSData.aggregate(records, 'segment');
         new Chart(document.getElementById('segmentChart'), {
             type: 'doughnut',
-            data: { labels: bySegment.map(function (s) { return s.key; }), datasets: [{ data: bySegment.map(function (s) { return s.total; }), backgroundColor: palette }] },
+            data: { labels: bySegment.map(function (s) { return s.key; }), datasets: [{ data: bySegment.map(function (s) { return s.total; }), backgroundColor: palette, borderColor: '#fff', borderWidth: 2 }] },
             options: { responsive: true }
         });
 
         var byCategory = GSData.aggregate(records, 'category');
         new Chart(document.getElementById('categoryChart'), {
             type: 'doughnut',
-            data: { labels: byCategory.map(function (c) { return c.key; }), datasets: [{ data: byCategory.map(function (c) { return c.total; }), backgroundColor: palette }] },
+            data: { labels: byCategory.map(function (c) { return c.key; }), datasets: [{ data: byCategory.map(function (c) { return c.total; }), backgroundColor: palette, borderColor: '#fff', borderWidth: 2 }] },
             options: { responsive: true }
         });
 
         var byCity = GSData.aggregate(records, 'city');
         new Chart(document.getElementById('cityChart'), {
             type: 'bar',
-            data: { labels: byCity.map(function (c) { return c.key; }), datasets: [{ label: 'Sales', data: byCity.map(function (c) { return c.total; }), backgroundColor: '#1d363f' }] },
-            options: { responsive: true, plugins: { legend: { display: false } }, indexAxis: 'y' }
+            data: { labels: byCity.map(function (c) { return c.key; }), datasets: [{ label: 'Sales', data: byCity.map(function (c) { return c.total; }), backgroundColor: GS_PALETTE.brand, borderRadius: 4 }] },
+            options: { responsive: true, plugins: { legend: { display: false } }, indexAxis: 'y', scales: { x: { grid: { color: GS_PALETTE.grid } }, y: { grid: { display: false } } } }
         });
 
         var byCustomer = GSData.aggregate(records, 'customerName').slice(0, 5);
         new Chart(document.getElementById('topCustomersChart'), {
             type: 'bar',
-            data: { labels: byCustomer.map(function (c) { return c.key; }), datasets: [{ label: 'Sales', data: byCustomer.map(function (c) { return c.total; }), backgroundColor: '#2b7a78' }] },
-            options: { responsive: true, plugins: { legend: { display: false } } }
+            data: { labels: byCustomer.map(function (c) { return c.key; }), datasets: [{ label: 'Sales', data: byCustomer.map(function (c) { return c.total; }), backgroundColor: GS_PALETTE.categorical[0], borderRadius: 4 }] },
+            options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { grid: { color: GS_PALETTE.grid } }, x: { grid: { display: false } } } }
         });
+      })();
     </script>
 </body>
 </html>

@@ -11,58 +11,55 @@
     <link rel="stylesheet" href="CSS/Theme.css">
 </head>
 <body data-page="customers">
-    <script>if (sessionStorage.getItem('gsa.session') !== '1') { window.location.replace('index.html'); }</script>
+    <div class="app-shell">
+        <nav class="sidebar" id="sidebar"></nav>
+        <div class="app-main">
+            <header class="topbar">
+                <button id="navToggle" class="navToggle" aria-label="Toggle navigation"><i class="fa-solid fa-bars"></i></button>
+                <h1 class="page-title">Sales by Customer</h1>
+            </header>
+            <main class="page-content">
+                <div class="chart-card">
+                    <h2>Top 10 Customers by Sales</h2>
+                    <canvas id="topChart"></canvas>
+                </div>
 
-    <button id="navToggle" class="navToggle" aria-label="Toggle navigation"><i class="fa-solid fa-bars"></i></button>
-    <div class="sidenav"></div>
-    <nav class="sidenav2" id="sidenav2"></nav>
-
-    <header class="fluid-container center topbar">
-        <div class="row align-items-center">
-            <div class="col-md-3">
-                <img src="Images/logo.png" class="logo" alt="GS Analytics logo"/>
-            </div>
-            <div class="col-md-6">
-                <span class="vertical-middle">Sales by Customer</span>
-            </div>
-            <div class="col-md-3">
-                <span class="uprTxt" data-user></span>
-                <a href="#" class="uprTxt" data-action="logout" style="margin-left:10px;">Logout</a>
-            </div>
+                <div class='search'>
+                    <input id="searchInput" name='search' type='text' class='searchTerm' placeholder='Search customers…' aria-label="Search customers">
+                    <button type='button' class='searchButton'><img class="searchIcon" src='Images/filter.png' alt=""/></button>
+                </div>
+                <div class="table-card">
+                    <div class="table-scroll">
+                        <table class="table">
+                            <thead>
+                                <tr><th>Customer ID</th><th>Name</th><th>Segment</th><th class="num">Orders</th><th class="num">Total Sales</th></tr>
+                            </thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
         </div>
-    </header>
-
-    <main class="fluid-container center">
-        <div class="container main-body">
-            <div class="chart-card">
-                <h2>Top 10 Customers by Sales</h2>
-                <canvas id="topChart"></canvas>
-            </div>
-
-            <div class='search'>
-                <input id="searchInput" name='search' type='text' class='searchTerm' placeholder='Search customers…' aria-label="Search customers">
-                <button type='button' class='searchButton'><img class="searchIcon" src='Images/filter.png' alt=""/></button>
-            </div>
-            <div class="table-scroll">
-                <table class="table">
-                    <thead>
-                        <tr><th>Customer ID</th><th>Name</th><th>Segment</th><th>Orders</th><th>Total Sales</th></tr>
-                    </thead>
-                    <tbody id="tableBody"></tbody>
-                </table>
-            </div>
-        </div>
-    </main>
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js" integrity="sha384-XcdcwHqIPULERb2yDEM4R0XaQKU3YnDsrTmjACBZyfdVVqjh6xQ4/DCMd7XLcA6Y" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="JS/api.js"></script>
     <script src="JS/auth.js"></script>
     <script src="JS/data.js"></script>
+    <script src="JS/palette.js"></script>
     <script src="JS/ui.js"></script>
     <script src="JS/nav.js"></script>
     <script>
-        var records = GSData.getRecords();
-        var customers = GSData.getCustomers();
+      (async function () {
+        await GSAuth.requireAuth();
+
+        Chart.defaults.font.family = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
+        Chart.defaults.color = GS_PALETTE.ink;
+        Chart.defaults.borderColor = GS_PALETTE.grid;
+
+        var results = await Promise.all([GSData.getRecords(), GSData.getCustomers()]);
+        var records = results[0], customers = results[1];
         var byCustomerId = {};
         records.forEach(function (r) {
             if (!byCustomerId[r.customerId]) byCustomerId[r.customerId] = { id: r.customerId, name: r.customerName, segment: r.segment, orders: 0, total: 0 };
@@ -76,7 +73,7 @@
 
         function renderTable(list) {
             document.getElementById('tableBody').innerHTML = list.map(function (r) {
-                return '<tr><td>' + r.id + '</td><td>' + r.name + '</td><td>' + r.segment + '</td><td>' + r.orders + '</td><td>$' + r.total.toFixed(2) + '</td></tr>';
+                return '<tr><td>' + r.id + '</td><td>' + r.name + '</td><td>' + r.segment + '</td><td class="num">' + r.orders + '</td><td class="num">$' + r.total.toFixed(2) + '</td></tr>';
             }).join('') || '<tr><td colspan="5">No customers match your search.</td></tr>';
         }
         renderTable(rows);
@@ -91,9 +88,10 @@
         var topRows = rows.filter(function (r) { return r.total > 0; }).slice(0, 10);
         new Chart(document.getElementById('topChart'), {
             type: 'bar',
-            data: { labels: topRows.map(function (r) { return r.name; }), datasets: [{ label: 'Sales', data: topRows.map(function (r) { return r.total; }), backgroundColor: '#1d363f' }] },
-            options: { responsive: true, plugins: { legend: { display: false } } }
+            data: { labels: topRows.map(function (r) { return r.name; }), datasets: [{ label: 'Sales', data: topRows.map(function (r) { return r.total; }), backgroundColor: GS_PALETTE.brand, borderRadius: 4 }] },
+            options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { grid: { color: GS_PALETTE.grid } }, x: { grid: { display: false } } } }
         });
+      })();
     </script>
 </body>
 </html>

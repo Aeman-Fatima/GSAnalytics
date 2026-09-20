@@ -11,89 +11,81 @@
     <link rel="stylesheet" href="CSS/Theme.css">
 </head>
 <body data-page="main">
-    <script>if (sessionStorage.getItem('gsa.session') !== '1') { window.location.replace('index.html'); }</script>
+    <div class="app-shell">
+        <nav class="sidebar" id="sidebar"></nav>
+        <div class="app-main">
+            <header class="topbar">
+                <button id="navToggle" class="navToggle" aria-label="Toggle navigation"><i class="fa-solid fa-bars"></i></button>
+                <h1 class="page-title">Home</h1>
+            </header>
+            <main class="page-content">
+                <div class="kpi-row" id="kpiRow"></div>
 
-    <button id="navToggle" class="navToggle" aria-label="Toggle navigation"><i class="fa-solid fa-bars"></i></button>
-    <div class="sidenav"></div>
-    <nav class="sidenav2" id="sidenav2"></nav>
-
-    <header class="fluid-container center topbar">
-        <div class="row align-items-center">
-            <div class="col-md-3">
-                <img src="Images/logo.png" class="logo" alt="GS Analytics logo"/>
-            </div>
-            <div class="col-md-6">
-                <span class="vertical-middle">Home</span>
-            </div>
-            <div class="col-md-3">
-                <span class="uprTxt" data-user></span>
-                <a href="#" class="uprTxt" data-action="logout" style="margin-left:10px;">Logout</a>
-            </div>
-        </div>
-    </header>
-
-    <main class="fluid-container center">
-        <div class="container main-body">
-            <div class="kpi-row" id="kpiRow"></div>
-
-            <div class="row">
-                <div class="col-lg-7">
+                <div class="grid-2">
                     <div class="chart-card">
                         <h2>Monthly Sales Trend</h2>
                         <canvas id="trendChart"></canvas>
                     </div>
-                </div>
-                <div class="col-lg-5">
                     <div class="chart-card">
                         <h2>Sales by Category</h2>
                         <canvas id="categoryChart"></canvas>
                     </div>
                 </div>
-            </div>
 
-            <div class="chart-card">
-                <h2>Recent Orders</h2>
-                <div class="table-scroll">
-                    <table class="table">
-                        <thead>
-                            <tr><th>Order Date</th><th>Customer</th><th>Product</th><th>City</th><th>Sales</th></tr>
-                        </thead>
-                        <tbody id="recentOrdersBody"></tbody>
-                    </table>
+                <div class="chart-card">
+                    <h2>Recent Orders</h2>
+                    <div class="table-card">
+                        <div class="table-scroll">
+                            <table class="table">
+                                <thead>
+                                    <tr><th>Order Date</th><th>Customer</th><th>Product</th><th>City</th><th class="num">Sales</th></tr>
+                                </thead>
+                                <tbody id="recentOrdersBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="row float-right" style="margin-top: 1.5em;">
-                <div class="buttons">
-                    <a href="addRecord.html" class="btn btnSelect"><i class="fa-solid fa-plus"></i> Add Record</a>
-                    <a href="addCustomer.html" class="btn btnSelect"><i class="fa-solid fa-user-plus"></i> Add Customer</a>
-                    <a href="addProduct.html" class="btn btnSelect"><i class="fa-solid fa-box"></i> Add Product</a>
+                <div class="float-right">
+                    <div class="buttons">
+                        <a href="addRecord.html" class="btnSelect"><i class="fa-solid fa-plus"></i> Add Record</a>
+                        <a href="addCustomer.html" class="btnSelect"><i class="fa-solid fa-user-plus"></i> Add Customer</a>
+                        <a href="addProduct.html" class="btnSelect"><i class="fa-solid fa-box"></i> Add Product</a>
+                    </div>
                 </div>
-            </div>
+            </main>
         </div>
-    </main>
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js" integrity="sha384-XcdcwHqIPULERb2yDEM4R0XaQKU3YnDsrTmjACBZyfdVVqjh6xQ4/DCMd7XLcA6Y" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="JS/api.js"></script>
     <script src="JS/auth.js"></script>
     <script src="JS/data.js"></script>
+    <script src="JS/palette.js"></script>
     <script src="JS/ui.js"></script>
     <script src="JS/nav.js"></script>
     <script>
-        var records = GSData.getRecords();
+      (async function () {
+        await GSAuth.requireAuth();
+
+        Chart.defaults.font.family = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
+        Chart.defaults.color = GS_PALETTE.ink;
+        Chart.defaults.borderColor = GS_PALETTE.grid;
+
+        var results = await Promise.all([GSData.getRecords(), GSData.getCustomers(), GSData.getProducts()]);
+        var records = results[0], customers = results[1], products = results[2];
         var totalSales = records.reduce(function (sum, r) { return sum + r.sales; }, 0);
-        var customers = GSData.getCustomers();
-        var products = GSData.getProducts();
 
         var kpis = [
-            { label: 'Total Sales', value: '$' + totalSales.toLocaleString(undefined, { maximumFractionDigits: 0 }) },
-            { label: 'Orders', value: records.length },
-            { label: 'Avg Order Value', value: '$' + (records.length ? (totalSales / records.length) : 0).toFixed(2) },
-            { label: 'Customers', value: customers.length },
-            { label: 'Products', value: products.length }
+            { label: 'Total Sales', value: '$' + totalSales.toLocaleString(undefined, { maximumFractionDigits: 0 }), icon: 'fa-solid fa-sack-dollar' },
+            { label: 'Orders', value: records.length, icon: 'fa-solid fa-receipt' },
+            { label: 'Avg Order Value', value: '$' + (records.length ? (totalSales / records.length) : 0).toFixed(2), icon: 'fa-solid fa-chart-line' },
+            { label: 'Customers', value: customers.length, icon: 'fa-solid fa-users' },
+            { label: 'Products', value: products.length, icon: 'fa-solid fa-box' }
         ];
         document.getElementById('kpiRow').innerHTML = kpis.map(function (k) {
-            return '<div class="kpi-card"><div class="kpi-label">' + k.label + '</div><div class="kpi-value">' + k.value + '</div></div>';
+            return '<div class="kpi-card"><div class="kpi-icon"><i class="' + k.icon + '"></i></div><div><div class="kpi-label">' + k.label + '</div><div class="kpi-value">' + k.value + '</div></div></div>';
         }).join('');
 
         var monthly = GSData.monthly(records);
@@ -104,13 +96,15 @@
                 datasets: [{
                     label: 'Sales',
                     data: monthly.map(function (m) { return m.total; }),
-                    borderColor: '#2b7a78',
-                    backgroundColor: 'rgba(43,122,120,0.15)',
+                    borderColor: GS_PALETTE.categorical[0],
+                    backgroundColor: GS_PALETTE.categorical[0] + '26',
                     fill: true,
-                    tension: 0.3
+                    tension: 0.3,
+                    borderWidth: 2,
+                    pointRadius: 3
                 }]
             },
-            options: { responsive: true, plugins: { legend: { display: false } } }
+            options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { grid: { color: GS_PALETTE.grid } }, x: { grid: { display: false } } } }
         });
 
         var byCategory = GSData.aggregate(records, 'category');
@@ -118,15 +112,16 @@
             type: 'bar',
             data: {
                 labels: byCategory.map(function (c) { return c.key; }),
-                datasets: [{ label: 'Sales', data: byCategory.map(function (c) { return c.total; }), backgroundColor: '#1d363f' }]
+                datasets: [{ label: 'Sales', data: byCategory.map(function (c) { return c.total; }), backgroundColor: GS_PALETTE.categorical.slice(0, byCategory.length), borderRadius: 4 }]
             },
-            options: { responsive: true, plugins: { legend: { display: false } } }
+            options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { grid: { color: GS_PALETTE.grid } }, x: { grid: { display: false } } } }
         });
 
         var recent = records.slice().sort(function (a, b) { return b.orderDate.localeCompare(a.orderDate); }).slice(0, 6);
         document.getElementById('recentOrdersBody').innerHTML = recent.map(function (r) {
-            return '<tr><td>' + r.orderDate + '</td><td>' + r.customerName + '</td><td>' + r.productName + '</td><td>' + r.city + '</td><td>$' + r.sales.toFixed(2) + '</td></tr>';
+            return '<tr><td>' + r.orderDate + '</td><td>' + r.customerName + '</td><td>' + r.productName + '</td><td>' + r.city + '</td><td class="num">$' + r.sales.toFixed(2) + '</td></tr>';
         }).join('');
+      })();
     </script>
 </body>
 </html>

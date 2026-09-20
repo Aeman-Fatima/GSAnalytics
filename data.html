@@ -9,101 +9,97 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha384-PPIZEGYM1v8zp5Py7UjFb79S58UeqCL9pYVnVPURKEqvioPROaVAJKKLzvH2rDnI" crossorigin="anonymous" referrerpolicy="no-referrer">
     <link href="https://fonts.googleapis.com/css?family=Raleway:300,400,500i,900,900i" rel="stylesheet">
     <link rel="stylesheet" href="CSS/Theme.css">
-    <link rel="stylesheet" href="CSS/add.css">
     <style>
-        .table{ margin-top: 0em; }
-        .main-body{ margin-bottom: 4em; }
-        #editModal .modal-content{ max-width: 520px; }
+        #editModal .modal-content{ max-width: 480px; }
     </style>
 </head>
 <body data-page="data">
-    <script>if (sessionStorage.getItem('gsa.session') !== '1') { window.location.replace('index.html'); }</script>
-
-    <button id="navToggle" class="navToggle" aria-label="Toggle navigation"><i class="fa-solid fa-bars"></i></button>
-    <div class="sidenav"></div>
-    <nav class="sidenav2" id="sidenav2"></nav>
-
-    <header class="fluid-container center topbar">
-        <div class="row align-items-center">
-            <div class="col-md-3">
-                <img src="Images/logo.png" class="logo" alt="GS Analytics logo"/>
-            </div>
-            <div class="col-md-6">
-                <span class="vertical-middle">Data</span>
-            </div>
-            <div class="col-md-3">
-                <span class="uprTxt" data-user></span>
-                <a href="#" class="uprTxt" data-action="logout" style="margin-left:10px;">Logout</a>
-            </div>
-        </div>
-    </header>
-
-    <main class="fluid-container center">
-        <div class="container main-body">
-            <div class='search'>
-                <input id="searchInput" name='search' type='text' class='searchTerm' placeholder='What are you looking for?' aria-label="Search records">
-                <button type='button' class='searchButton'><img class="searchIcon" src='Images/filter.png' alt=""/></button>
-            </div>
-            <p class="note" style="clear: both;">Click a row to select it, then use Delete or Edit below.</p>
-            <div class="table-scroll">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>ID</th><th>Order Date</th><th>Customer ID</th><th>Customer Name</th>
-                            <th>Segment</th><th>Product ID</th><th>Product Name</th><th>Category</th>
-                            <th>City</th><th>Sales</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody"></tbody>
-                </table>
-            </div>
-            <div class="row float-right">
-                <div class="buttons" style="margin-right: 10px;">
-                    <a href="addRecord.html" class="btn btnSelect">Add Record</a>
-                    <button type="button" class="btn btnSelect" id="deleteBtn">Delete Record</button>
-                    <button type="button" class="btn btnSelect" id="editBtn">Edit Record</button>
-                    <button type="button" class="btn btnSelect" id="exportBtn">Export CSV</button>
+    <div class="app-shell">
+        <nav class="sidebar" id="sidebar"></nav>
+        <div class="app-main">
+            <header class="topbar">
+                <button id="navToggle" class="navToggle" aria-label="Toggle navigation"><i class="fa-solid fa-bars"></i></button>
+                <h1 class="page-title">Data</h1>
+            </header>
+            <main class="page-content">
+                <div class='search'>
+                    <input id="searchInput" name='search' type='text' class='searchTerm' placeholder='What are you looking for?' aria-label="Search records">
+                    <button type='button' class='searchButton'><img class="searchIcon" src='Images/filter.png' alt=""/></button>
                 </div>
-            </div>
+                <p class="note">Click a row to select it, then use Delete or Edit below.</p>
+                <div class="table-card">
+                    <div class="table-scroll">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Order Date</th><th>Customer</th><th>Product(s)</th>
+                                    <th>City</th><th class="num">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="float-right">
+                    <div class="buttons">
+                        <a href="addRecord.html" class="btnSelect">Add Record</a>
+                        <button type="button" class="btnSelect" id="deleteBtn">Delete Record</button>
+                        <button type="button" class="btnSelect" id="editBtn">Edit Record</button>
+                        <button type="button" class="btnSelect" id="exportBtn">Export CSV</button>
+                    </div>
+                </div>
+            </main>
         </div>
-    </main>
+    </div>
 
     <div id="editModal" class="modal">
         <div class="modal-content">
             <span class="close" id="closeModal">&times;</span>
-            <h3 style="color:#1d363f;">Edit Record</h3>
+            <h3 style="color:var(--ink-primary); margin-top:0;">Edit Record</h3>
             <form id="editForm">
-                <div class="row ask"><div class="col-md-6"><label class="Q" for="editOrderDate">Order Date:</label></div><div class="col-md-6"><input type="date" class="in" id="editOrderDate" required></div></div>
-                <div class="row ask"><div class="col-md-6"><label class="Q" for="editCustomerName">Customer Name:</label></div><div class="col-md-6"><input type="text" class="in" id="editCustomerName" required></div></div>
-                <div class="row ask"><div class="col-md-6"><label class="Q" for="editProductName">Product Name:</label></div><div class="col-md-6"><input type="text" class="in" id="editProductName" required></div></div>
-                <div class="row ask"><div class="col-md-6"><label class="Q" for="editCity">City:</label></div><div class="col-md-6"><input type="text" class="in" id="editCity" required></div></div>
-                <div class="row ask"><div class="col-md-6"><label class="Q" for="editSales">Sales:</label></div><div class="col-md-6"><input type="number" step="0.01" min="0" class="in" id="editSales" required></div></div>
-                <div class="row ask"><div class="col-md-6"></div><div class="col-md-6"><button type="submit" class="btn btnSelect">Save Changes</button></div></div>
+                <div class="ask"><label class="Q" for="editOrderDate">Order Date</label><input type="date" class="in" id="editOrderDate" required></div>
+                <div class="ask" id="editCustomerWrp"><label class="Q" for="editCustomer">Customer</label><select class="in" id="editCustomer" required></select></div>
+                <div class="ask" id="editProductWrp"><label class="Q" for="editProduct">Product</label><select class="in" id="editProduct" required></select></div>
+                <div class="ask"><label class="Q" for="editCity">City</label><input type="text" class="in" id="editCity" required></div>
+                <div class="ask" id="editSalesWrp"><label class="Q" for="editSales">Sales</label><input type="number" step="0.01" min="0.01" class="in" id="editSales" required></div>
+                <p class="note" id="editMultiItemNote" style="display:none;">This order has multiple line items — only its date and city can be edited here.</p>
+                <button type="submit" class="btnSelect">Save Changes</button>
             </form>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="JS/api.js"></script>
     <script src="JS/auth.js"></script>
     <script src="JS/data.js"></script>
     <script src="JS/ui.js"></script>
     <script src="JS/nav.js"></script>
     <script>
-        var records = GSData.getRecords();
+      (async function () {
+        await GSAuth.requireAuth();
+
+        var allCustomers = [];
+        var allProducts = [];
+        var sales = [];
         var selectedId = null;
+
+        function productSummary(sale) {
+            if (sale.items.length === 0) return '';
+            if (sale.items.length === 1) return sale.items[0].productName;
+            return sale.items[0].productName + ' + ' + (sale.items.length - 1) + ' more';
+        }
 
         function renderTable(list) {
             document.getElementById('tableBody').innerHTML = list.map(function (r) {
                 var selectedClass = r.id === selectedId ? ' row-selected' : '';
                 return '<tr class="row-selectable' + selectedClass + '" data-id="' + r.id + '">' +
-                    '<td>' + r.id + '</td><td>' + r.orderDate + '</td><td>' + r.customerId + '</td><td>' + r.customerName + '</td>' +
-                    '<td>' + r.segment + '</td><td>' + r.productId + '</td><td>' + r.productName + '</td><td>' + r.category + '</td>' +
-                    '<td>' + r.city + '</td><td>' + r.sales.toFixed(2) + '</td></tr>';
-            }).join('') || '<tr><td colspan="10">No records match your search.</td></tr>';
+                    '<td>' + r.orderDate + '</td><td>' + r.customerName + '</td><td>' + productSummary(r) + '</td>' +
+                    '<td>' + r.city + '</td><td class="num">' + r.total.toFixed(2) + '</td></tr>';
+            }).join('') || '<tr><td colspan="5">No records match your search.</td></tr>';
 
             document.querySelectorAll('#tableBody tr[data-id]').forEach(function (row) {
                 row.addEventListener('click', function () {
-                    selectedId = Number(row.getAttribute('data-id'));
+                    selectedId = row.getAttribute('data-id');
                     renderTable(currentList());
                 });
             });
@@ -111,33 +107,62 @@
 
         function currentList() {
             var term = document.getElementById('searchInput').value.toLowerCase();
-            if (!term) return records;
-            return records.filter(function (r) {
-                return Object.values(r).join(' ').toLowerCase().indexOf(term) !== -1;
+            if (!term) return sales;
+            return sales.filter(function (r) {
+                return (r.orderDate + ' ' + r.customerName + ' ' + productSummary(r) + ' ' + r.city).toLowerCase().indexOf(term) !== -1;
             });
         }
 
-        renderTable(records);
+        async function reload() {
+            sales = await GSData.getSales();
+            renderTable(currentList());
+        }
+
+        var results = await Promise.all([GSData.getCustomers(), GSData.getProducts(), GSData.getSales()]);
+        allCustomers = results[0];
+        allProducts = results[1];
+        sales = results[2];
+        renderTable(sales);
+
         document.getElementById('searchInput').addEventListener('input', function () { renderTable(currentList()); });
 
         document.getElementById('deleteBtn').addEventListener('click', function () {
             if (selectedId === null) { GSUI.showToast('Select a row first.', true); return; }
-            GSData.deleteRecord(selectedId);
-            records = GSData.getRecords();
-            selectedId = null;
-            renderTable(currentList());
-            GSUI.showToast('Record deleted.');
+            GSData.deleteSale(selectedId).then(function () {
+                selectedId = null;
+                return reload();
+            }).then(function () {
+                GSUI.showToast('Record deleted.');
+            }).catch(function (err) {
+                GSUI.showToast(err.message || 'Could not delete record.', true);
+            });
         });
 
         var editModal = document.getElementById('editModal');
         document.getElementById('editBtn').addEventListener('click', function () {
             if (selectedId === null) { GSUI.showToast('Select a row first.', true); return; }
-            var record = records.find(function (r) { return r.id === selectedId; });
-            document.getElementById('editOrderDate').value = record.orderDate;
-            document.getElementById('editCustomerName').value = record.customerName;
-            document.getElementById('editProductName').value = record.productName;
-            document.getElementById('editCity').value = record.city;
-            document.getElementById('editSales').value = record.sales;
+            var sale = sales.find(function (r) { return r.id === selectedId; });
+            var singleItem = sale.items.length === 1;
+
+            document.getElementById('editOrderDate').value = sale.orderDate;
+            document.getElementById('editCity').value = sale.city;
+            document.getElementById('editCustomerWrp').style.display = singleItem ? '' : 'none';
+            document.getElementById('editProductWrp').style.display = singleItem ? '' : 'none';
+            document.getElementById('editSalesWrp').style.display = singleItem ? '' : 'none';
+            document.getElementById('editMultiItemNote').style.display = singleItem ? 'none' : '';
+
+            if (singleItem) {
+                var customerSelect = document.getElementById('editCustomer');
+                customerSelect.innerHTML = allCustomers.map(function (c) { return '<option value="' + c.id + '">' + c.name + '</option>'; }).join('');
+                customerSelect.value = sale.customerId;
+
+                var productSelect = document.getElementById('editProduct');
+                productSelect.innerHTML = allProducts.map(function (p) { return '<option value="' + p.id + '">' + p.name + '</option>'; }).join('');
+                productSelect.value = sale.items[0].productId;
+
+                document.getElementById('editSales').value = sale.items[0].unitPrice;
+            }
+
             editModal.style.display = 'block';
         });
         document.getElementById('closeModal').addEventListener('click', function () { editModal.style.display = 'none'; });
@@ -145,28 +170,38 @@
 
         document.getElementById('editForm').addEventListener('submit', function (e) {
             e.preventDefault();
-            var record = records.find(function (r) { return r.id === selectedId; });
-            record.orderDate = document.getElementById('editOrderDate').value;
-            record.customerName = document.getElementById('editCustomerName').value.trim();
-            record.productName = document.getElementById('editProductName').value.trim();
-            record.city = document.getElementById('editCity').value.trim();
-            record.sales = parseFloat(document.getElementById('editSales').value) || 0;
-            GSData.updateRecord(record);
-            records = GSData.getRecords();
-            editModal.style.display = 'none';
-            renderTable(currentList());
-            GSUI.showToast('Record updated.');
+            var sale = sales.find(function (r) { return r.id === selectedId; });
+            var singleItem = sale.items.length === 1;
+            var orderDate = document.getElementById('editOrderDate').value;
+            var city = document.getElementById('editCity').value.trim();
+
+            var save = singleItem
+                ? GSData.updateSingleItemSale(sale.id, {
+                    customerId: document.getElementById('editCustomer').value,
+                    productId: document.getElementById('editProduct').value,
+                    orderDate: orderDate,
+                    city: city,
+                    sales: parseFloat(document.getElementById('editSales').value) || 0
+                })
+                : GSData.updateSaleDateAndCity(sale, orderDate, city);
+
+            save.then(function () {
+                editModal.style.display = 'none';
+                return reload();
+            }).then(function () {
+                GSUI.showToast('Record updated.');
+            }).catch(function (err) {
+                GSUI.showToast(err.message || 'Could not update record.', true);
+            });
         });
 
         document.getElementById('exportBtn').addEventListener('click', function () {
             GSUI.downloadCsv('gs-analytics-records.csv', currentList(), [
-                { key: 'id', label: 'ID' }, { key: 'orderDate', label: 'Order Date' },
-                { key: 'customerId', label: 'Customer ID' }, { key: 'customerName', label: 'Customer Name' },
-                { key: 'segment', label: 'Segment' }, { key: 'productId', label: 'Product ID' },
-                { key: 'productName', label: 'Product Name' }, { key: 'category', label: 'Category' },
-                { key: 'city', label: 'City' }, { key: 'sales', label: 'Sales' }
+                { key: 'orderDate', label: 'Order Date' }, { key: 'customerName', label: 'Customer Name' },
+                { key: 'city', label: 'City' }, { key: 'total', label: 'Total' }
             ]);
         });
+      })();
     </script>
 </body>
 </html>

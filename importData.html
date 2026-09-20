@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>GS Analytics — Import Data</title>
+    <link rel="icon" href="Images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha384-PPIZEGYM1v8zp5Py7UjFb79S58UeqCL9pYVnVPURKEqvioPROaVAJKKLzvH2rDnI" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link href="https://fonts.googleapis.com/css?family=Raleway:300,400,500i,900,900i" rel="stylesheet">
+    <link rel="stylesheet" href="CSS/Theme.css">
+    <style>
+        #importMapping select { max-width: 260px; }
+        .mapping-row { display: flex; align-items: center; gap: 1em; margin-bottom: 0.6em; flex-wrap: wrap; }
+        .mapping-row .field-label { min-width: 160px; font-weight: 600; color: var(--ink-primary); }
+        .error-list { max-height: 240px; overflow-y: auto; }
+    </style>
+</head>
+<body data-page="importData">
+    <div class="app-shell">
+        <nav class="sidebar" id="sidebar"></nav>
+        <div class="app-main">
+            <header class="topbar">
+                <button id="navToggle" class="navToggle" aria-label="Toggle navigation"><i class="fa-solid fa-bars"></i></button>
+                <h1 class="page-title">Import Data</h1>
+            </header>
+            <main class="page-content">
+                <div class="form-card">
+                    <p class="note">Upload a CSV export of your sales. You'll map its columns below before anything is imported — unrecognized customers and products are created automatically.</p>
+                    <div class="ask">
+                        <label class="Q" for="csvFile">CSV File</label>
+                        <input class="in" type="file" id="csvFile" accept=".csv,text/csv">
+                    </div>
+                </div>
+
+                <div class="form-card" id="mappingCard" style="display:none;">
+                    <h2>Map Columns</h2>
+                    <div id="importMapping"></div>
+
+                    <h2 style="margin-top:1.5em;">Preview (first 5 rows)</h2>
+                    <div class="table-card">
+                        <div class="table-scroll">
+                            <table class="table">
+                                <thead id="previewHead"></thead>
+                                <tbody id="previewBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <p class="note" id="rowCountNote"></p>
+                    <button type="button" class="btnSelect" id="importBtn">Import</button>
+                </div>
+
+                <div class="form-card" id="resultCard" style="display:none;">
+                    <h2>Import Result</h2>
+                    <div class="kpi-row" id="resultKpis"></div>
+                    <p class="note" id="duplicateNote" style="display:none;"><i class="fa-solid fa-triangle-exclamation"></i> A file with identical content was imported before. This import still went ahead.</p>
+                    <div id="errorSection" style="display:none;">
+                        <h3 style="color:var(--ink-primary);">Rows that couldn't be imported</h3>
+                        <div class="table-card error-list">
+                            <div class="table-scroll">
+                                <table class="table">
+                                    <thead><tr><th>Row</th><th>Reason</th></tr></thead>
+                                    <tbody id="errorBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="JS/api.js"></script>
+    <script src="JS/auth.js"></script>
+    <script src="JS/data.js"></script>
+    <script src="JS/ui.js"></script>
+    <script src="JS/nav.js"></script>
+    <script>
+      (async function () {
+        await GSAuth.requireAuth();
+
+        var FIELDS = [
+            { key: 'customerName', label: 'Customer Name', required: true, guesses: ['customer', 'customer name', 'client'] },
+            { key: 'productName', label: 'Product Name', required: true, guesses: ['product', 'product name', 'item'] },
+            { key: 'saleDate', label: 'Order Date', required: true, guesses: ['date', 'order date', 'sale date'] },
+            { key: 'city', label: 'City', required: false, guesses: ['city', 'location'] },
+            { key: 'quantity', label: 'Quantity', required: true, guesses: ['qty', 'quantity', 'units'] },
+            { key: 'unitPrice', label: 'Unit Price', required: true, guesses: ['price', 'unit price', 'sales', 'amount'] }
+        ];
+
+        var rawContent = '';
+        var fileName = '';
+        var headers = [];
+        var dataRows = [];
+
+        function parseCsv(text) {
+            var rows = [];
+            var row = [];
+            var field = '';
+            var inQuotes = false;
+            for (var i = 0; i < text.length; i++) {
+                var c = text[i];
+                if (inQuotes) {
+                    if (c === '"') {
+                        if (text[i + 1] === '"') { field += '"'; i++; } else { inQuotes = false; }
+                    } else {
+                        field += c;
+                    }
+                } else if (c === '"') {
+                    inQuotes = true;
+                } else if (c === ',') {
+                    row.push(field); field = '';
+                } else if (c === '\n' || c === '\r') {
+                    if (c === '\r' && text[i + 1] === '\n') i++;
+                    row.push(field); field = '';
+                    if (row.length > 1 || row[0] !== '') rows.push(row);
+                    row = [];
+                } else {
+                    field += c;
+                }
+            }
+            if (field !== '' || row.length > 0) { row.push(field); rows.push(row); }
+            return rows;
+        }
+
+        function guessColumn(field) {
+            for (var i = 0; i < headers.length; i++) {
+                var h = headers[i].trim().toLowerCase();
+                if (field.guesses.indexOf(h) !== -1) return i;
+            }
+            return -1;
+        }
+
+        function renderMapping() {
+            document.getElementById('importMapping').innerHTML = FIELDS.map(function (f) {
+                var guess = guessColumn(f);
+                var options = '<option value="">— Not mapped —</option>' + headers.map(function (h, i) {
+                    return '<option value="' + i + '"' + (i === guess ? ' selected' : '') + '>' + h + '</option>';
+                }).join('');
+                return '<div class="mapping-row"><span class="field-label">' + f.label + (f.required ? ' *' : '') + '</span>' +
+                    '<select class="in" data-field="' + f.key + '">' + options + '</select></div>';
+            }).join('');
+        }
+
+        function currentMapping() {
+            var mapping = {};
+            document.querySelectorAll('#importMapping select').forEach(function (sel) {
+                var idx = sel.value;
+                if (idx !== '') mapping[sel.getAttribute('data-field')] = headers[Number(idx)];
+            });
+            return mapping;
+        }
+
+        function columnIndexFor(fieldKey) {
+            var sel = document.querySelector('#importMapping select[data-field="' + fieldKey + '"]');
+            return sel && sel.value !== '' ? Number(sel.value) : -1;
+        }
+
+        function renderPreview() {
+            document.getElementById('previewHead').innerHTML = '<tr>' + headers.map(function (h) { return '<th>' + h + '</th>'; }).join('') + '</tr>';
+            document.getElementById('previewBody').innerHTML = dataRows.slice(0, 5).map(function (r) {
+                return '<tr>' + headers.map(function (h, i) { return '<td>' + (r[i] || '') + '</td>'; }).join('') + '</tr>';
+            }).join('');
+            document.getElementById('rowCountNote').textContent = dataRows.length + ' data row(s) found.';
+        }
+
+        document.getElementById('csvFile').addEventListener('change', function (e) {
+            var file = e.target.files[0];
+            if (!file) return;
+            fileName = file.name;
+            var reader = new FileReader();
+            reader.onload = function () {
+                rawContent = String(reader.result);
+                var parsed = parseCsv(rawContent);
+                if (parsed.length === 0) { GSUI.showToast('That file appears to be empty.', true); return; }
+                headers = parsed[0];
+                dataRows = parsed.slice(1);
+                renderMapping();
+                renderPreview();
+                document.getElementById('mappingCard').style.display = '';
+                document.getElementById('resultCard').style.display = 'none';
+            };
+            reader.readAsText(file);
+        });
+
+        document.getElementById('importBtn').addEventListener('click', function () {
+            var mapping = currentMapping();
+            var missing = FIELDS.filter(function (f) { return f.required && !(f.key in mapping); });
+            if (missing.length > 0) {
+                GSUI.showToast('Map these required fields first: ' + missing.map(function (f) { return f.label; }).join(', '), true);
+                return;
+            }
+
+            var idx = {
+                customerName: columnIndexFor('customerName'),
+                productName: columnIndexFor('productName'),
+                saleDate: columnIndexFor('saleDate'),
+                city: columnIndexFor('city'),
+                quantity: columnIndexFor('quantity'),
+                unitPrice: columnIndexFor('unitPrice')
+            };
+
+            var rows = dataRows.map(function (r) {
+                return {
+                    customerName: r[idx.customerName] || '',
+                    productName: r[idx.productName] || '',
+                    saleDate: r[idx.saleDate] || '',
+                    city: idx.city !== -1 ? (r[idx.city] || '') : null,
+                    quantity: r[idx.quantity] || '',
+                    unitPrice: r[idx.unitPrice] || ''
+                };
+            });
+
+            var btn = this;
+            btn.disabled = true;
+            GSData.commitImport(fileName, rawContent, mapping, rows).then(function (result) {
+                btn.disabled = false;
+                document.getElementById('resultCard').style.display = '';
+                document.getElementById('resultKpis').innerHTML = [
+                    { label: 'Total Rows', value: result.totalRows },
+                    { label: 'Imported', value: result.succeededRows },
+                    { label: 'Failed', value: result.failedRows }
+                ].map(function (k) {
+                    return '<div class="kpi-card"><div><div class="kpi-label">' + k.label + '</div><div class="kpi-value">' + k.value + '</div></div></div>';
+                }).join('');
+
+                document.getElementById('duplicateNote').style.display = result.isDuplicateOfEarlierImport ? '' : 'none';
+
+                var errorSection = document.getElementById('errorSection');
+                if (result.errors && result.errors.length > 0) {
+                    errorSection.style.display = '';
+                    document.getElementById('errorBody').innerHTML = result.errors.map(function (e) {
+                        return '<tr><td>' + (e.row + 1) + '</td><td>' + e.reason + '</td></tr>';
+                    }).join('');
+                } else {
+                    errorSection.style.display = 'none';
+                }
+
+                GSUI.showToast('Import finished: ' + result.succeededRows + ' of ' + result.totalRows + ' rows imported.');
+            }).catch(function (err) {
+                btn.disabled = false;
+                GSUI.showToast(err.message || 'Import failed.', true);
+            });
+        });
+      })();
+    </script>
+</body>
+</html>

@@ -9,97 +9,74 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha384-PPIZEGYM1v8zp5Py7UjFb79S58UeqCL9pYVnVPURKEqvioPROaVAJKKLzvH2rDnI" crossorigin="anonymous" referrerpolicy="no-referrer">
     <link href="https://fonts.googleapis.com/css?family=Raleway:300,400,500i,900,900i" rel="stylesheet">
     <link rel="stylesheet" href="CSS/Theme.css">
-    <link rel="stylesheet" href="CSS/add.css">
-    <style>
-        .ask{ margin-top: 2em; }
-    </style>
 </head>
 <body data-page="addRecord">
-    <script>if (sessionStorage.getItem('gsa.session') !== '1') { window.location.replace('index.html'); }</script>
+    <div class="app-shell">
+        <nav class="sidebar" id="sidebar"></nav>
+        <div class="app-main">
+            <header class="topbar">
+                <button id="navToggle" class="navToggle" aria-label="Toggle navigation"><i class="fa-solid fa-bars"></i></button>
+                <h1 class="page-title">Add New Record</h1>
+            </header>
+            <main class="page-content">
+                <div class="form-card">
+                    <form id="recordForm" novalidate>
+                        <div class="ask">
+                            <label class="Q" for="orderDate">Date</label>
+                            <input type="date" class="in" id="orderDate" required>
+                        </div>
 
-    <button id="navToggle" class="navToggle" aria-label="Toggle navigation"><i class="fa-solid fa-bars"></i></button>
-    <div class="sidenav"></div>
-    <nav class="sidenav2" id="sidenav2"></nav>
-
-    <header class="fluid-container center topbar">
-        <div class="row align-items-center">
-            <div class="col-md-3">
-                <img src="Images/logo.png" class="logo" alt="GS Analytics logo"/>
-            </div>
-            <div class="col-md-6">
-                <span class="vertical-middle">Add New Record</span>
-            </div>
-            <div class="col-md-3">
-                <span class="uprTxt" data-user></span>
-                <a href="#" class="uprTxt" data-action="logout" style="margin-left:10px;">Logout</a>
-            </div>
-        </div>
-    </header>
-
-    <main class="fluid-container center">
-        <div class="container main-body">
-            <div class="container">
-                <form id="recordForm" novalidate>
-                    <div class="row ask">
-                        <div class="col-md-6"><label class="Q" for="orderDate">Date:</label></div>
-                        <div class="col-md-6"><input type="date" class="in" id="orderDate" required></div>
-                    </div>
-
-                    <div class="row ask">
-                        <div class="col-md-6"><label class="Q" for="customerId">Customer:</label></div>
-                        <div class="col-md-6">
+                        <div class="ask">
+                            <label class="Q" for="customerId">Customer</label>
                             <select class="in" id="customerId" required>
                                 <option disabled selected hidden value="">Select a customer</option>
                             </select>
                         </div>
-                    </div>
 
-                    <div class="row ask">
-                        <div class="col-md-6"><label class="Q" for="productId">Product:</label></div>
-                        <div class="col-md-6">
+                        <div class="ask">
+                            <label class="Q" for="productId">Product</label>
                             <select class="in" id="productId" required>
                                 <option disabled selected hidden value="">Select a product</option>
                             </select>
                         </div>
-                    </div>
 
-                    <div class="row ask">
-                        <div class="col-md-6"><label class="Q" for="city">City:</label></div>
-                        <div class="col-md-6">
+                        <div class="ask">
+                            <label class="Q" for="city">City</label>
                             <input class="in" type="text" id="city" list="cityOptions" placeholder="City" required>
                             <datalist id="cityOptions"></datalist>
                         </div>
-                    </div>
 
-                    <div class="row ask">
-                        <div class="col-md-6"><label class="Q" for="sales">Sales:</label></div>
-                        <div class="col-md-6"><input class="in" type="number" step="0.01" min="0.01" id="sales" placeholder="Sales" required></div>
-                    </div>
+                        <div class="ask">
+                            <label class="Q" for="sales">Sales</label>
+                            <input class="in" type="number" step="0.01" min="0.01" id="sales" placeholder="Sales" required>
+                        </div>
 
-                    <div class="row ask">
-                        <div class="col-md-6"></div>
-                        <div class="col-md-6"><button type="submit" class="btn btnSelect">Add Record</button></div>
-                    </div>
-                </form>
-            </div>
+                        <button type="submit" class="btnSelect">Add Record</button>
+                    </form>
+                </div>
+            </main>
         </div>
-    </main>
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="JS/api.js"></script>
     <script src="JS/auth.js"></script>
     <script src="JS/data.js"></script>
     <script src="JS/ui.js"></script>
     <script src="JS/nav.js"></script>
     <script>
-        var customers = GSData.getCustomers();
-        var products = GSData.getProducts();
+      (async function () {
+        await GSAuth.requireAuth();
+
+        var results = await Promise.all([GSData.getCustomers(), GSData.getProducts()]);
+        var customers = results[0], products = results[1];
         var cities = GSData.getCities();
 
         var customerSelect = document.getElementById('customerId');
         customers.forEach(function (c) {
             var opt = document.createElement('option');
             opt.value = c.id;
-            opt.textContent = c.id + ' — ' + c.name;
+            opt.textContent = c.name + (c.segment ? ' — ' + c.segment : '');
             customerSelect.appendChild(opt);
         });
 
@@ -107,7 +84,7 @@
         products.forEach(function (p) {
             var opt = document.createElement('option');
             opt.value = p.id;
-            opt.textContent = p.id + ' — ' + p.name;
+            opt.textContent = p.name + (p.category ? ' — ' + p.category : '');
             productSelect.appendChild(opt);
         });
 
@@ -122,6 +99,7 @@
 
         document.getElementById('recordForm').addEventListener('submit', function (e) {
             e.preventDefault();
+            var form = this;
             var customer = customers.find(function (c) { return c.id === customerSelect.value; });
             var product = products.find(function (p) { return p.id === productSelect.value; });
             if (!customer || !product) { GSUI.showToast('Select a customer and product.', true); return; }
@@ -129,18 +107,18 @@
             GSData.addRecord({
                 orderDate: document.getElementById('orderDate').value,
                 customerId: customer.id,
-                customerName: customer.name,
-                segment: customer.segment,
                 productId: product.id,
-                productName: product.name,
-                category: product.category,
                 city: document.getElementById('city').value.trim(),
                 sales: parseFloat(document.getElementById('sales').value) || 0
+            }).then(function () {
+                GSUI.showToast('Record added.');
+                form.reset();
+                document.getElementById('orderDate').valueAsDate = new Date();
+            }).catch(function (err) {
+                GSUI.showToast(err.message || 'Could not add record.', true);
             });
-            GSUI.showToast('Record added.');
-            this.reset();
-            document.getElementById('orderDate').valueAsDate = new Date();
         });
+      })();
     </script>
 </body>
 </html>
