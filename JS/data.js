@@ -1,128 +1,147 @@
-/* GS Analytics — demo data layer.
-   No backend exists, so records/customers/products live in localStorage,
-   seeded from a deterministic starter dataset on first load. */
+/* GS Analytics — data layer, backed by the real backend API.
+   "Records" (one row per sale line item, e.g. for charts/aggregates) and "Sales" (one row per
+   order, for the Data management page) are two different flattenings of the same /api/sales
+   data — analytics needs per-item rows, order management needs per-order rows. */
 (function (global) {
     'use strict';
 
-    var STORAGE_KEYS = {
-        records: 'gsa.records',
-        customers: 'gsa.customers',
-        products: 'gsa.products'
-    };
+    var CITIES = ['Adelaide', 'Norwood', 'Glenelg', 'Unley', 'Prospect', 'Semaphore', 'Henley Beach', 'Port Adelaide', 'Burnside', 'Mawson Lakes', 'Golden Grove', 'Salisbury'];
 
-    var CITIES = ['Henderson', 'Los Angeles', 'San Francisco', 'Chicago', 'Seattle', 'New York City', 'Fort Lauderdale', 'Concord'];
-
-    var DEFAULT_CUSTOMERS = [
-        { id: 'CG-12520', name: 'Claire Gute', segment: 'Consumer' },
-        { id: 'DV-13045', name: 'Darrin Van Huff', segment: 'Corporate' },
-        { id: 'SO-20335', name: "Sean O'Donnell", segment: 'Consumer' },
-        { id: 'BH-11710', name: 'Brosina Hoffman', segment: 'Home Office' },
-        { id: 'AR-10480', name: 'Adam Rico', segment: 'Corporate' },
-        { id: 'TB-21520', name: 'Tamara Black', segment: 'Consumer' },
-        { id: 'NP-18325', name: 'Nathan Perez', segment: 'Home Office' },
-        { id: 'JL-15835', name: 'Jasper Lee', segment: 'Corporate' }
-    ];
-
-    var DEFAULT_PRODUCTS = [
-        { id: 'FUR-BO-10001798', name: 'Bush Somerset Collection Bookcase', category: 'Furniture' },
-        { id: 'FUR-CH-10000454', name: 'Hon Deluxe Fabric Task Chair', category: 'Furniture' },
-        { id: 'FUR-TA-10001728', name: 'Bretford Conference Table', category: 'Furniture' },
-        { id: 'OFF-AR-10002833', name: 'Newell 341 Highlighter', category: 'Office Supplies' },
-        { id: 'OFF-BI-10004632', name: 'Avery Durable Binder', category: 'Office Supplies' },
-        { id: 'OFF-PA-10001970', name: 'Xerox 20lb Copy Paper', category: 'Office Supplies' },
-        { id: 'TEC-PH-10002275', name: 'Plantronics Headset', category: 'Technology' },
-        { id: 'TEC-AC-10003033', name: 'Logitech Wireless Mouse', category: 'Technology' },
-        { id: 'TEC-MA-10001047', name: 'Canon Desktop Printer', category: 'Technology' }
-    ];
-
-    function generateRecords() {
-        var records = [];
-        var months = ['2024-01', '2024-02', '2024-03', '2024-04', '2024-05', '2024-06'];
-        var baseByCategory = { Furniture: 320, 'Office Supplies': 45, Technology: 210 };
-        var id = 1;
-        months.forEach(function (month, mi) {
-            var countThisMonth = 7 + (mi % 3);
-            for (var i = 0; i < countThisMonth; i++) {
-                var customer = DEFAULT_CUSTOMERS[(mi * 5 + i) % DEFAULT_CUSTOMERS.length];
-                var product = DEFAULT_PRODUCTS[(mi * 3 + i * 2) % DEFAULT_PRODUCTS.length];
-                var city = CITIES[(mi + i) % CITIES.length];
-                var variance = ((mi * 37 + i * 53) % 260) - 60;
-                var sales = Math.max(9.99, baseByCategory[product.category] + variance);
-                var dd = String(1 + ((i * 4 + mi) % 27)).padStart(2, '0');
-                records.push({
-                    id: id++,
-                    orderDate: month + '-' + dd,
-                    customerId: customer.id,
-                    customerName: customer.name,
-                    segment: customer.segment,
-                    productId: product.id,
-                    productName: product.name,
-                    category: product.category,
-                    city: city,
-                    sales: Math.round(sales * 100) / 100
-                });
-            }
-        });
-        return records;
-    }
-
-    function readStore(key, fallbackFn) {
-        try {
-            var raw = localStorage.getItem(key);
-            if (raw) return JSON.parse(raw);
-        } catch (e) { /* storage unavailable, fall through */ }
-        var fallback = fallbackFn();
-        writeStore(key, fallback);
-        return fallback;
-    }
-
-    function writeStore(key, value) {
-        try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* ignore quota/availability errors */ }
-    }
+    function mapCustomer(c) { return { id: c.id, name: c.name, segment: c.segment, email: c.email, phone: c.phone }; }
+    function mapProduct(p) { return { id: p.id, name: p.name, category: p.category }; }
 
     var GSData = {
-        getRecords: function () { return readStore(STORAGE_KEYS.records, generateRecords); },
-        saveRecords: function (records) { writeStore(STORAGE_KEYS.records, records); },
-        addRecord: function (record) {
-            var records = GSData.getRecords();
-            record.id = records.length ? Math.max.apply(null, records.map(function (r) { return r.id; })) + 1 : 1;
-            records.push(record);
-            GSData.saveRecords(records);
-            return record;
+        getCustomers: function () {
+            return GSApi.json('/customers').then(function (customers) { return customers.map(mapCustomer); });
         },
-        updateRecord: function (updated) {
-            var records = GSData.getRecords().map(function (r) { return r.id === updated.id ? updated : r; });
-            GSData.saveRecords(records);
-        },
-        deleteRecord: function (id) {
-            var records = GSData.getRecords().filter(function (r) { return r.id !== id; });
-            GSData.saveRecords(records);
-        },
-
-        getCustomers: function () { return readStore(STORAGE_KEYS.customers, function () { return DEFAULT_CUSTOMERS; }); },
         addCustomer: function (customer) {
-            var customers = GSData.getCustomers();
-            customers.push(customer);
-            writeStore(STORAGE_KEYS.customers, customers);
-            return customer;
+            return GSApi.json('/customers', {
+                method: 'POST',
+                body: JSON.stringify({ name: customer.name, segment: customer.segment, email: customer.email, phone: customer.phone })
+            }).then(mapCustomer);
         },
 
-        getProducts: function () { return readStore(STORAGE_KEYS.products, function () { return DEFAULT_PRODUCTS; }); },
+        getProducts: function () {
+            return GSApi.json('/products').then(function (products) { return products.map(mapProduct); });
+        },
         addProduct: function (product) {
-            var products = GSData.getProducts();
-            products.push(product);
-            writeStore(STORAGE_KEYS.products, products);
-            return product;
+            return GSApi.json('/products', {
+                method: 'POST',
+                body: JSON.stringify({ name: product.name, category: product.category })
+            }).then(mapProduct);
         },
 
         getCities: function () { return CITIES.slice(); },
 
-        resetDemoData: function () {
-            try {
-                localStorage.removeItem(STORAGE_KEYS.records);
-                localStorage.removeItem(STORAGE_KEYS.customers);
-                localStorage.removeItem(STORAGE_KEYS.products);
-            } catch (e) { /* ignore */ }
+        getCustomersNeedingAttention: function () {
+            return GSApi.json('/insights/customers-needing-attention');
+        },
+
+        getProductTrends: function () {
+            return GSApi.json('/insights/product-trends');
+        },
+
+        /* One row per sale — for the Data management page (list/edit/delete whole orders). */
+        getSales: function () {
+            return GSApi.json('/sales').then(function (sales) {
+                return sales.map(function (s) {
+                    return {
+                        id: s.id,
+                        orderDate: s.saleDate,
+                        customerId: s.customerId,
+                        customerName: s.customerName,
+                        city: s.city || '',
+                        items: s.items,
+                        itemCount: s.items.length,
+                        total: s.total
+                    };
+                });
+            });
+        },
+
+        /* Replaces a single-item sale's customer/product/date/city/amount in one shot. Only valid
+           when the sale currently has exactly one item — multi-item orders keep their line items
+           and can only have their date/city changed (see updateSaleDateAndCity). */
+        updateSingleItemSale: function (saleId, fields) {
+            return GSApi.json('/sales/' + saleId, {
+                method: 'PUT',
+                body: JSON.stringify({
+                    customerId: fields.customerId,
+                    saleDate: fields.orderDate,
+                    city: fields.city,
+                    items: [{ productId: fields.productId, quantity: 1, unitPrice: fields.sales }]
+                })
+            });
+        },
+
+        updateSaleDateAndCity: function (sale, orderDate, city) {
+            return GSApi.json('/sales/' + sale.id, {
+                method: 'PUT',
+                body: JSON.stringify({
+                    customerId: sale.customerId,
+                    saleDate: orderDate,
+                    city: city,
+                    items: sale.items.map(function (i) { return { productId: i.productId, quantity: i.quantity, unitPrice: i.unitPrice }; })
+                })
+            });
+        },
+
+        deleteSale: function (saleId) {
+            return GSApi.request('/sales/' + saleId, { method: 'DELETE' });
+        },
+
+        commitImport: function (fileName, rawContent, columnMapping, rows) {
+            return GSApi.json('/imports/commit', {
+                method: 'POST',
+                body: JSON.stringify({ fileName: fileName, rawContent: rawContent, columnMapping: columnMapping, rows: rows })
+            });
+        },
+
+        /* A single-product sale created from the "Add Record" form. */
+        addRecord: function (record) {
+            return GSApi.json('/sales', {
+                method: 'POST',
+                body: JSON.stringify({
+                    customerId: record.customerId,
+                    saleDate: record.orderDate,
+                    city: record.city,
+                    items: [{ productId: record.productId, quantity: 1, unitPrice: record.sales }]
+                })
+            });
+        },
+
+        /* One row per sale LINE ITEM — for charts and aggregate breakdowns. */
+        getRecords: function () {
+            return Promise.all([GSApi.json('/sales'), GSApi.json('/customers'), GSApi.json('/products')])
+                .then(function (results) {
+                    var sales = results[0], customers = results[1], products = results[2];
+
+                    var segmentByCustomerId = {};
+                    customers.forEach(function (c) { segmentByCustomerId[c.id] = c.segment || ''; });
+
+                    var categoryByProductId = {};
+                    products.forEach(function (p) { categoryByProductId[p.id] = p.category || ''; });
+
+                    var records = [];
+                    sales.forEach(function (s) {
+                        s.items.forEach(function (item) {
+                            records.push({
+                                id: s.id + '#' + item.id,
+                                saleId: s.id,
+                                orderDate: s.saleDate,
+                                customerId: s.customerId,
+                                customerName: s.customerName,
+                                segment: segmentByCustomerId[s.customerId] || '',
+                                productId: item.productId,
+                                productName: item.productName,
+                                category: categoryByProductId[item.productId] || '',
+                                city: s.city || '',
+                                sales: item.lineTotal
+                            });
+                        });
+                    });
+                    return records;
+                });
         },
 
         aggregate: function (records, field) {
